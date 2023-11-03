@@ -77,9 +77,9 @@ input[type=submit] {
             };
             // make API call with parameters and use promises to get response
             fetch("https://2rf5n13uaa.execute-api.us-west-1.amazonaws.com/Dev", requestOptions)
-            .then(response => response.text())
-            .then(result => alert(JSON.parse(result).body))
-            .catch(error => console.log('error', error));
+            .then(response => response.text());
+            // .then(result => alert(JSON.parse(result).body))
+            // .catch(error => console.log('error', error));
         }
     </script>
 
