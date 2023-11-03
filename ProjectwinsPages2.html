@@ -88,7 +88,7 @@ input[type=submit] {
 
             fetch(apiEndpoint).then(response => response.json()).then(data => {
             const notificationMessage = data.message;
-
+            document.write(notificationMessage)
             // Display the notification message as a popup or alert
             alert(notificationMessage);
             })
