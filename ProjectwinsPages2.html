@@ -77,23 +77,23 @@ input[type=submit] {
             };
             // make API call with parameters and use promises to get response
             fetch("https://2rf5n13uaa.execute-api.us-west-1.amazonaws.com/Dev", requestOptions)
-            .then(response => response.text());
-            //.then(result => alert(JSON.parse(result).body));
-            //.catch(error => console.log('error', error));
+            .then(response => response.text())
+            .then(result => alert(JSON.parse(result).body))
+            .catch(error => console.log('error', error));
         }
     </script>
 
-     <script>
-         const apiEndpoint = 'https://2rf5n13uaa.execute-api.us-west-1.amazonaws.com/Dev';
+<!--     <script>-->
+<!--         const apiEndpoint = 'https://2rf5n13uaa.execute-api.us-west-1.amazonaws.com/Dev';-->
 
-            fetch(apiEndpoint).then(response => response.json()).then(data => {
-            const notificationMessage = data.message;
-            document.write(notificationMessage)
-            // Display the notification message as a popup or alert
-            alert(notificationMessage);
-            })
-        .catch(error => console.error("Error:", error));
-     </script>
+<!--            fetch(apiEndpoint).then(response => response.json()).then(data => {-->
+<!--            const notificationMessage = data.message;-->
+<!--            document.write(notificationMessage)-->
+<!--            // Display the notification message as a popup or alert-->
+<!--            alert(notificationMessage);-->
+<!--            })-->
+<!--        .catch(error => console.error("Error:", error));-->
+<!--     </script>-->
 
 </head>
 <body>
