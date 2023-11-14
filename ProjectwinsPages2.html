@@ -76,7 +76,7 @@ input[type=submit] {
                 redirect: 'follow'
             };
             // make API call with parameters and use promises to get response
-            fetch("https://afgj1rxpia.execute-api.us-west-1.amazonaws.com/Dev", requestOptions)
+            fetch("https://2fy90ut829.execute-api.us-west-1.amazonaws.com/Dev", requestOptions)
             .then(response => response.text());
             // .then(result => alert(JSON.parse(result).body))
             // .catch(error => console.log('error', error));
@@ -102,7 +102,7 @@ input[type=submit] {
 <p style="text-align:center">Join  your friends</p>
 
 <div class="container">
-        <form method="POST" action="https://afgj1rxpia.execute-api.us-west-1.amazonaws.com/Dev">
+        <form method="POST" action="https://2fy90ut829.execute-api.us-west-1.amazonaws.com/Dev">
         <input type="text" name="signup_username" placeholder="Name" required id="signup_username">
             <input type="text" name="signup_mailid" placeholder="E-mail" required id="signup_mailid">
             <input type="password" name="signup_passwd" placeholder="Password" required id="signup_passwd">
