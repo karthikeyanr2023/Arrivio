@@ -1,43 +1,75 @@
+<!--&lt;!&ndash;<html>&ndash;&gt;-->
+<!--&lt;!&ndash;<head>&ndash;&gt;-->
+<!--&lt;!&ndash;<title>Page Title____</title>&ndash;&gt;-->
+<!--&lt;!&ndash;</head>&ndash;&gt;-->
+<!--&lt;!&ndash;<body>&ndash;&gt;-->
+
+<!--&lt;!&ndash;<h1>This is a Heading</h1>&ndash;&gt;-->
+<!--&lt;!&ndash;<p>This is a paragraph.</p>&ndash;&gt;-->
+
+<!--&lt;!&ndash;</body>&ndash;&gt;-->
+<!--&lt;!&ndash;</html>&ndash;&gt;-->
+<!--<!DOCTYPE html>-->
 <!--<html>-->
 <!--<head>-->
-<!--<title>Page Title____</title>-->
+<!--    <title>DynamoDB Entry</title>-->
 <!--</head>-->
 <!--<body>-->
+<!--    <h1>Add an Entry to DynamoDB</h1>-->
+<!--    <form id="entryForm">-->
+<!--        <input type="text" name="entry" placeholder="Entry" required>-->
+<!--        <button type="submit">Add Entry</button>-->
+<!--    </form>-->
+<!--    <div id="message"></div>-->
+<!--    <script>-->
+<!--        document.getElementById("signup_username").addEventListener("submit", function (e) {-->
+<!--            e.preventDefault();-->
+<!--            const entry = e.target.entry.value;-->
 
-<!--<h1>This is a Heading</h1>-->
-<!--<p>This is a paragraph.</p>-->
-
+<!--            // Make an API request to your API Gateway-->
+<!--            fetch('https://2rf5n13uaa.execute-api.us-west-1.amazonaws.com/Dev', {-->
+<!--                method: 'POST',-->
+<!--                body: JSON.stringify({ entry: entry })-->
+<!--            })-->
+<!--            .then(response => response.json())-->
+<!--            .then(data => {-->
+<!--                document.getElementById("message").innerText = data.message;-->
+<!--            })-->
+<!--            .catch(error => console.error("Error:", error));-->
+<!--        });-->
+<!--    </script>-->
 <!--</body>-->
 <!--</html>-->
+
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>DynamoDB Entry</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Gateway Demo</title>
+    <p style="text-align:center">Connect with your Rider Friends</p>
 </head>
 <body>
-    <h1>Add an Entry to DynamoDB</h1>
-    <form id="entryForm">
-        <input type="text" name="entry" placeholder="Entry" required>
-        <button type="submit">Add Entry</button>
-    </form>
-    <div id="message"></div>
+    <div id="output"></div>
     <script>
-        document.getElementById("signup_username").addEventListener("submit", function (e) {
-            e.preventDefault();
-            const entry = e.target.entry.value;
-
-            // Make an API request to your API Gateway
-            fetch('https://2rf5n13uaa.execute-api.us-west-1.amazonaws.com/Dev', {
-                method: 'POST',
-                body: JSON.stringify({ entry: entry })
+        fetch("https://y3eev8v8ke.execute-api.us-west-1.amazonaws.com/Dev")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
             })
-            .then(response => response.json())
             .then(data => {
-                document.getElementById("message").innerText = data.message;
+                // Check the status code and handle the data accordingly
+                console.log(data);
+                if (data.statusCode === 200) {
+                    document.getElementById('output').innerHTML = JSON.stringify(data.body);
+                } else {
+                    document.getElementById('output').innerHTML = 'Error occurred: ' + data.body.error;
+                }
             })
-            .catch(error => console.error("Error:", error));
-        });
+            .catch(error => console.error('Error:', error));
     </script>
 </body>
 </html>
-
