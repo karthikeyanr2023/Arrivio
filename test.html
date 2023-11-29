@@ -62,6 +62,7 @@
                 .then(data => {
                     // Handle the response data
                     document.getElementById('result').innerHTML = JSON.stringify(data);
+                    document.getElementById('result').innerHTML = 'Message: ' + data.message;
                 })
                 .catch(error => {
                     console.error('Error:', error);
