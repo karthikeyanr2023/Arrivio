@@ -48,28 +48,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Gateway Demo</title>
-    <p style="text-align:center">Connect with your Rider Friends</p>
+    <p style="text-align:center">Connect with your Bike Rider Friends</p>
 </head>
 <body>
     <div id="output"></div>
-    <script>
-        fetch("https://y3eev8v8ke.execute-api.us-west-1.amazonaws.com/Dev")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Check the status code and handle the data accordingly
-                console.log(data);
-                if (data.statusCode === 200) {
-                    document.getElementById('output').innerHTML = JSON.stringify(data.body);
-                } else {
-                    document.getElementById('output').innerHTML = 'Error occurred: ' + data.body.error;
-                }
-            })
-            .catch(error => console.error('Error:', error));
+       <script>
+        // function callLambda() {
+            // Replace 'YOUR_API_GATEWAY_URL' with the actual URL of your API Gateway
+            const apiUrl = 'https://2rf5n13uaa.execute-api.us-west-1.amazonaws.com/Dev';
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response data
+                    document.getElementById('result').innerHTML = JSON.stringify(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        // }
     </script>
+
+
+<!--    <script>-->
+<!--        fetch("https://y3eev8v8ke.execute-api.us-west-1.amazonaws.com/Dev")-->
+<!--            .then(response => {-->
+<!--                if (!response.ok) {-->
+<!--                    throw new Error('Network response was not ok');-->
+<!--                }-->
+<!--                return response.json();-->
+<!--            })-->
+<!--            .then(data => {-->
+<!--                // Check the status code and handle the data accordingly-->
+<!--                console.log(data);-->
+<!--                if (data.statusCode === 200) {-->
+<!--                    document.getElementById('output').innerHTML = JSON.stringify(data.body);-->
+<!--                } else {-->
+<!--                    document.getElementById('output').innerHTML = 'Error occurred: ' + data.body.error;-->
+<!--                }-->
+<!--            })-->
+<!--            .catch(error => console.error('Error:', error));-->
+<!--    </script>-->
 </body>
 </html>
