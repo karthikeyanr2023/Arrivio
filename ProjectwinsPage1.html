@@ -117,6 +117,61 @@ input[type=submit]:hover {
   }
 }
 </style>
+      <script>
+        var callsigninAPI = (signin_username,signin_passwd)=>{
+            // instantiate a headers object
+            var myHeaders = new Headers();
+            // add content type header to object
+            myHeaders.append("Content-Type", "application/json");
+            // using built in JSON utility package turn object to string and store in a variable
+            var raw = JSON.stringify({"signin_username":signin_username,"signup_passwd":signin_passwd});
+            // create a JSON object with parameters for API call and store in a variable
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+            fetch("https://y3eev8v8ke.execute-api.us-west-1.amazonaws.com/Dev", requestOptions)
+            .then(response => {
+            if (response.ok) {
+                return response.text();
+            } else {
+                throw new Error('Failed to fetch data');
+            }
+            }).then(responseText => {
+            // Parse the JSON string
+            const responseObject = JSON.parse(responseText);
+
+            // Access the statusCode property
+            const statusCode = responseObject.statusCode;
+            // Now you can use the statusCode variable as needed
+            console.log(statusCode);
+            // Apply your conditional statement
+            if (statusCode === 201) {
+                // console.log('Status code is 201');
+                const userConfirmed = window.confirm('Login already in use, pls provide new one');
+                setTimeout(() => { console.log('Status code is 201'); }, 2000);
+                if(userConfirmed)
+                {
+                      window.location.href = 'https://main.d2bpbvhfbls5o6.amplifyapp.com/ProjectwinsPages2.html'
+                }
+            } else {
+                //console.log('Status code is 200');
+                const userConfirmed = window.confirm('Login Successfully created');
+                setTimeout(() => { console.log('Status code is 200'); }, 2000);
+                window.location.href = 'https://main.d2bpbvhfbls5o6.amplifyapp.com/ProjectwinsPage1.html'
+            }
+        }) .catch(error => {
+            console.error(error);
+        });
+
+            // .then(result => alert(JSON.parse(result).body))
+            // .catch(error => console.log('error', error));
+        }
+
+    </script>
+
 </head>
 <body>
 
@@ -139,9 +194,10 @@ input[type=submit]:hover {
           <p>Or sign in manually:</p>
         </div>
 
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <input type="submit" onclick="location.href='https://www.google.com/'" value="Login">
+        <input type="text" name="username" placeholder="Username" required id="signin_username">
+        <input type="password" name="password" placeholder="Password" required id="signin_passwd">
+          <input type="submit" onclick="callsigninAPI(document.getElementById('signin_username').value,document.getElementById('signin_passwd').value)" value="Login">
+<!--        <input type="submit" onclick="location.href='https://www.google.com/'" value="Login">-->
       </div>
 
     </div>
