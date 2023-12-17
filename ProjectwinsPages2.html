@@ -98,10 +98,16 @@ input[type=submit] {
 
             // Apply your conditional statement
             if (statusCode === 201) {
-                console.log('Status code is 201');
-                window.location.href = 'https://main.d2bpbvhfbls5o6.amplifyapp.com/ProjectwinsPages2.html'
+                // console.log('Status code is 201');
+                const userConfirmed = window.confirm('Login already in use');
+                setTimeout(() => { console.log('Status code is 201'); }, 2000);
+                if(userConfirmed)
+                {
+                      window.location.href = 'https://main.d2bpbvhfbls5o6.amplifyapp.com/ProjectwinsPages2.html'
+                }
             } else {
-                console.log('Status code is not 201');
+                //console.log('Status code is 200');
+                setTimeout(() => { console.log('Status code is 200'); }, 3000);
                 window.location.href = 'https://main.d2bpbvhfbls5o6.amplifyapp.com/ProjectwinsPage1.html'
             }
         }) .catch(error => {
