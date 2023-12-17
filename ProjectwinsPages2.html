@@ -99,7 +99,7 @@ input[type=submit] {
             // Apply your conditional statement
             if (statusCode === 201) {
                 // console.log('Status code is 201');
-                const userConfirmed = window.confirm('Login already in use');
+                const userConfirmed = window.confirm('Login already in use, pls provide new one');
                 setTimeout(() => { console.log('Status code is 201'); }, 2000);
                 if(userConfirmed)
                 {
@@ -107,7 +107,8 @@ input[type=submit] {
                 }
             } else {
                 //console.log('Status code is 200');
-                setTimeout(() => { console.log('Status code is 200'); }, 3000);
+                const userConfirmed = window.confirm('Login Successfully created');
+                setTimeout(() => { console.log('Status code is 200'); }, 2000);
                 window.location.href = 'https://main.d2bpbvhfbls5o6.amplifyapp.com/ProjectwinsPage1.html'
             }
         }) .catch(error => {
