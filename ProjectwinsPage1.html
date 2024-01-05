@@ -149,12 +149,15 @@ input[type=submit]:hover {
             // Now you can use the statusCode variable as needed
             console.log(statusCode);
             // Apply your conditional statement
-            if (statusCode === 201) {
-                 console.log('Password match not found!');
+            if (statusCode === 201)
+            {
+                console.log('Password match not found!');
                 // const userConfirmed = window.confirm('Login already in use, pls provide new one');
-                setTimeout(() => { console.log('Status code is 201'); }, 2000);
+                setTimeout(() => {
+                    console.log('Status code is 201');
+                }, 2000);
                 window.location.href = 'https://www.yahoo.com'
-
+            }
             if (statusCode === 202)
             {
                 console.log('Username not found!');
@@ -162,7 +165,7 @@ input[type=submit]:hover {
                 setTimeout(() => { console.log('Status code is 202'); }, 2000);
                 window.location.href = 'https://www.netflix.com'
             }
-            }
+
             if (statusCode === 200)
             {
                 //console.log('Status code is 200');
@@ -170,10 +173,10 @@ input[type=submit]:hover {
                 setTimeout(() => { console.log('Status code is 200'); }, 2000);
                 window.location.href = 'https://www.google.com'
             }
-            // else{
-            //     setTimeout(() => { console.log('Status code is .....'); }, 2000);
-            //     window.location.href = 'https://www.apple.com'
-            // }
+
+            else{
+                 setTimeout(() => { console.log('Status code is .....'); }, 2000);
+             }
         }) .catch(error => {
             console.error(error);
         });
