@@ -162,11 +162,17 @@ input[type=submit]:hover {
                 setTimeout(() => { console.log('Status code is 202'); }, 2000);
                 window.location.href = 'https://www.netflix.com'
             }
-            } else {
+            }
+            if (statusCode === 200)
+            {
                 //console.log('Status code is 200');
                 // const userConfirmed = window.confirm('Login Success');
                 setTimeout(() => { console.log('Status code is 200'); }, 2000);
                 window.location.href = 'https://www.google.com'
+            }
+            else{
+                setTimeout(() => { console.log('Status code is 200'); }, 2000);
+                window.location.href = 'https://www.apple.com'
             }
         }) .catch(error => {
             console.error(error);
