@@ -122,8 +122,7 @@ input[type=submit]:hover {
             // instantiate a headers object
             var myHeaders = new Headers();
             // add content type header to object
-         //   myHeaders.append("Content-Type", "application/json");
-            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+           myHeaders.append("Content-Type", "application/json");
             // using built in JSON utility package turn object to string and store in a variable
             var raw = JSON.stringify({"signup_username":signup_username,"signin_passwd":signin_passwd});
             //console.log(raw);
@@ -211,15 +210,10 @@ input[type=submit]:hover {
           <p>Or sign in manually:</p>
         </div>
           <div class="container">
-<!--         <form method="POST" action="https://f9ftxg5q33.execute-api.us-west-1.amazonaws.com/Dev">-->
-
-<form method="POST" action="https://f9ftxg5q33.execute-api.us-west-1.amazonaws.com/Dev"
-    onsubmit="callsigninAPI(event, document.getElementById('signup_username').value, document.getElementById('signin_passwd').value)">
-
+        <form method="POST" action="https://f9ftxg5q33.execute-api.us-west-1.amazonaws.com/Dev">
         <input type="text" name="signup_username" placeholder="Username" required id="signup_username">
         <input type="password" name="signin_passwd" placeholder="Password" required id="signin_passwd">
-<!--          <input type="submit" onclick="callsigninAPI(document.getElementById('signup_username').value,document.getElementById('signin_passwd').value)" value="Login">-->
-         <input type="submit" value="Login">
+         <input type="submit" onclick="callsigninAPI(document.getElementById('signup_username').value,document.getElementById('signin_passwd').value)" value="Login">
              </form>
       </div>
 
