@@ -48,16 +48,19 @@
       margin-top: 20px;
     }
 
-    textarea {
-      height: 200px;
-      resize: vertical;
-      margin-bottom: 10px;
-    }
+ textarea {
+  height: 100px;
+  width: 750px;
+  resize: vertical;
+  margin: 0 auto; /* This will center the text box horizontally */
+  display: block; /* Ensure it behaves as a block element */
+  margin-bottom: 10px;
+}
 
     button {
       align-self: flex-end;
       padding: 10px;
-      margin-right: 10px;
+      margin-right: 350px;
     }
 
     .footer {
@@ -79,12 +82,12 @@
     }
 
     #dragBox {
-      width: 20%;
-      border: 2px dashed #68c182;
-      padding: 20px;
-      margin-top: 20px;
-      text-align: center;
-    }
+  width: 10%;
+  border: 1px dashed #68c182;
+  padding: 10px;
+  margin: -35px auto; /* This will center the drag box horizontally */
+  text-align: center;
+}
 
     #dragBox:hover {
       background-color: #e0f8e8;
@@ -107,7 +110,7 @@
       <button onclick="addInputBox()">Add Input Box</button>
       <input type="file" id="uploadBtn" onchange="handleFileUpload(this.files)">
       <div id="dragBox" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
-        Drag and drop or <label for="uploadBtn">click here to upload an image</label>
+      <label for="uploadBtn">Add Image</label>
       </div>
     </main>
 
