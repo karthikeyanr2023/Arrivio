@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    .container {
+      min-height: 100vh;
+      box-sizing: border-box;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      background-color: #f0f0f0;
+      overflow: hidden;
+    }
+
+    .expandable-margin {
+      width: 300px;
+      height: 100%;
+      background-color: #ccc;
+      box-shadow: 5px 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    main {
+      display: flex;
+      flex-grow: 1;
+      flex-direction: column;
+    }
+
+    .content-container {
+      padding-bottom: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .input-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      margin-top: 20px;
+    }
+
+    textarea {
+      height: 200px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    button {
+      align-self: flex-end;
+      padding: 10px;
+      margin-right: 10px;
+    }
+
+    .footer {
+      background-color: #04AA6D;
+      border-top: 2px solid #04AA6D; /* Changed border color */
+      padding: 10px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .footer a {
+      text-decoration: none;
+      color: #FFFFFF; /* Changed link color */
+    }
+
+    #uploadBtn {
+      display: none;
+    }
+
+    #dragBox {
+      width: 20%;
+      border: 2px dashed #68c182;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #dragBox:hover {
+      background-color: #e0f8e8;
+    }
+  </style>
+  <title>Your Page Title</title>
+</head>
+<body>
+
+  <div class="container">
+    <div class="expandable-margin"></div>
+
+    <main class="content-container">
+      <h1>Your Page Content</h1>
+
+      <div class="input-container" id="inputContainer">
+        <textarea placeholder="Enter up to 1000 words..."></textarea>
+      </div>
+
+      <button onclick="addInputBox()">Add Input Box</button>
+      <input type="file" id="uploadBtn" onchange="handleFileUpload(this.files)">
+      <div id="dragBox" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+        Drag and drop or <label for="uploadBtn">click here to upload an image</label>
+      </div>
+    </main>
+
+    <div class="footer">
+      <a href="#">Home</a>
+      <a href="#">Privacy</a>
+      <a href="#">Contact Us</a>
+      <a href="#">Sign Out</a>
+    </div>
+  </div>
+
+  <script>
+    function addInputBox() {
+      var inputContainer = document.getElementById('inputContainer');
+      var newTextarea = document.createElement('textarea');
+      newTextarea.placeholder = "Enter up to 1000 words...";
+      inputContainer.appendChild(newTextarea);
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+      var dragBox = document.getElementById('dragBox');
+      dragBox.style.backgroundColor = "#e0f8e8";
+    }
+
+    function handleDrop(event) {
+      event.preventDefault();
+      var dragBox = document.getElementById('dragBox');
+      dragBox.style.backgroundColor = "transparent";
+      var files = event.dataTransfer.files;
+      handleFileUpload(files);
+    }
+
+    function handleFileUpload(files) {
+      // Handle file upload logic here
+      console.log("Files uploaded:", files);
+    }
+  </script>
+
+</body>
+</html>
