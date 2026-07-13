@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arrivio Sign Up</title>
+  <style>
+    :root {
+      --primary: #1f4f7b;
+      --accent: #5b9dff;
+      --surface: #ffffff;
+      --surface-soft: #f3f8ff;
+      --text: #102a44;
+      --muted: #5b6e83;
+      --border: rgba(31, 79, 123, 0.12);
+      --shadow: 0 24px 55px rgba(17, 58, 95, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #eff6ff 0%, #f9fbfe 45%, #f7f9fd 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .register-shell {
+      width: min(680px, 100%);
+      background: var(--surface);
+      border-radius: 32px;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .register-hero {
+      padding: 40px 36px 28px;
+      background: linear-gradient(135deg, rgba(91, 157, 255, 0.16), rgba(31, 79, 123, 0.16));
+      display: grid;
+      gap: 18px;
+    }
+
+    .register-hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3.1vw, 2.7rem);
+      letter-spacing: -0.04em;
+    }
+
+    .register-hero p {
+      margin: 0;
+      max-width: 620px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .register-body {
+      padding: 32px 36px 36px;
+      display: grid;
+      gap: 26px;
+    }
+
+    .register-group {
+      display: grid;
+      gap: 18px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .field-grid .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.25s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 6px rgba(91, 157, 255, 0.14);
+      background: #fff;
+    }
+
+    .tree-panel {
+      border-radius: 24px;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      background: #f8fbff;
+      padding: 24px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .tree-panel h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+
+    .tree-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 18px;
+    }
+
+    .tree-item {
+      display: grid;
+      gap: 12px;
+      padding: 20px;
+      border-radius: 22px;
+      background: #fff;
+      border: 1px solid rgba(31, 79, 123, 0.05);
+      box-shadow: 0 14px 30px rgba(20, 56, 88, 0.05);
+    }
+
+    .tree-item > .tree-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tree-item-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .tree-item-summary {
+      color: var(--muted);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .tree-children {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 0 22px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .child-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #f1f7ff;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+    }
+
+    .child-item input {
+      width: auto;
+      accent-color: var(--accent);
+    }
+
+    .child-item label {
+      margin: 0;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .actions {
+      display: grid;
+      gap: 14px;
+    }
+
+    .actions button,
+    .actions a {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 18px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+    }
+
+    .actions button {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .actions button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(14, 86, 170, 0.18);
+    }
+
+    .actions a {
+      color: var(--primary);
+      background: transparent;
+      text-decoration: none;
+    }
+
+    .form-note {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .message {
+      padding: 14px 18px;
+      background: #e3f2ff;
+      color: #0a3f61;
+      border-radius: 18px;
+      display: none;
+      border: 1px solid rgba(28, 107, 171, 0.14);
+    }
+
+    @media (max-width: 720px) {
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="register-shell">
+    <section class="register-hero">
+      <h1>Create your Arrivio profile</h1>
+      <p>Sign up with a Gmail account, choose your country, and select preferences from the interest tree so your experience feels personal from the first login.</p>
+    </section>
+
+    <section class="register-body">
+      <div class="message" id="message"></div>
+
+      <form id="signupForm" autocomplete="off">
+        <div class="register-group">
+          <div class="field-grid">
+            <div class="field">
+              <label for="fullName">Name</label>
+              <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" />
+            </div>
+            <div class="field">
+              <label for="email">User Name (Gmail only)</label>
+              <input type="email" id="email" name="email" placeholder="yourname@gmail.com" />
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" placeholder="Create a password" />
+            </div>
+            <div class="field">
+              <label for="country">Country</label>
+              <select id="country" name="country">
+                <option value="">Select country</option>
+                <option>United States</option>
+                <option>Canada</option>
+                <option>United Kingdom</option>
+                <option>Australia</option>
+                <option>India</option>
+                <option>Germany</option>
+                <option>France</option>
+                <option>Japan</option>
+                <option>Singapore</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="tree-panel">
+          <h2>Preferences</h2>
+          <p class="form-note">Choose the interest categories that matter to you. You can select one or more items inside each section.</p>
+
+          <ul class="tree-list">
+            <li class="tree-item">
+              <div class="tree-header">
+                <div>
+                  <p class="tree-item-title">Food</p>
+                  <p class="tree-item-summary">Asian, Italian, Street food, Desserts, Coffee shops</p>
+                </div>
+              </div>
+              <ul class="tree-children">
+                <li class="child-item"><input type="checkbox" id="food-asian" name="preferences" value="Food:Asian" /><label for="food-asian">Asian cuisine</label></li>
+                <li class="child-item"><input type="checkbox" id="food-italian" name="preferences" value="Food:Italian" /><label for="food-italian">Italian cuisine</label></li>
+                <li class="child-item"><input type="checkbox" id="food-street" name="preferences" value="Food:Street Food" /><label for="food-street">Street food</label></li>
+                <li class="child-item"><input type="checkbox" id="food-desserts" name="preferences" value="Food:Desserts" /><label for="food-desserts">Desserts</label></li>
+                <li class="child-item"><input type="checkbox" id="food-coffee" name="preferences" value="Food:Coffee Shops" /><label for="food-coffee">Coffee shops</label></li>
+              </ul>
+            </li>
+
+            <li class="tree-item">
+              <div class="tree-header">
+                <div>
+                  <p class="tree-item-title">Events</p>
+                  <p class="tree-item-summary">Music festivals, Dance shows, Farmers markets, Art fairs, Theater</p>
+                </div>
+              </div>
+              <ul class="tree-children">
+                <li class="child-item"><input type="checkbox" id="event-music" name="preferences" value="Events:Music Festivals" /><label for="event-music">Music festivals</label></li>
+                <li class="child-item"><input type="checkbox" id="event-dance" name="preferences" value="Events:Dance" /><label for="event-dance">Dance events</label></li>
+                <li class="child-item"><input type="checkbox" id="event-farmers" name="preferences" value="Events:Farmers Market" /><label for="event-farmers">Farmers markets</label></li>
+                <li class="child-item"><input type="checkbox" id="event-art" name="preferences" value="Events:Art Fairs" /><label for="event-art">Art fairs</label></li>
+                <li class="child-item"><input type="checkbox" id="event-theater" name="preferences" value="Events:Theater" /><label for="event-theater">Theater shows</label></li>
+              </ul>
+            </li>
+
+            <li class="tree-item">
+              <div class="tree-header">
+                <div>
+                  <p class="tree-item-title">Sports Events</p>
+                  <p class="tree-item-summary">Cycling, Hiking, Running, Yoga retreats, Beach volleyball</p>
+                </div>
+              </div>
+              <ul class="tree-children">
+                <li class="child-item"><input type="checkbox" id="sports-cycling" name="preferences" value="Sports:Cycling" /><label for="sports-cycling">Cycling</label></li>
+                <li class="child-item"><input type="checkbox" id="sports-hiking" name="preferences" value="Sports:Hiking" /><label for="sports-hiking">Hiking</label></li>
+                <li class="child-item"><input type="checkbox" id="sports-running" name="preferences" value="Sports:Running" /><label for="sports-running">Running</label></li>
+                <li class="child-item"><input type="checkbox" id="sports-yoga" name="preferences" value="Sports:Yoga Retreats" /><label for="sports-yoga">Yoga retreats</label></li>
+                <li class="child-item"><input type="checkbox" id="sports-volleyball" name="preferences" value="Sports:Beach Volleyball" /><label for="sports-volleyball">Beach volleyball</label></li>
+              </ul>
+            </li>
+
+            <li class="tree-item">
+              <div class="tree-header">
+                <div>
+                  <p class="tree-item-title">Deals</p>
+                  <p class="tree-item-summary">Starbucks, Flower shops, Whole Foods, Costco, Local boutiques</p>
+                </div>
+              </div>
+              <ul class="tree-children">
+                <li class="child-item"><input type="checkbox" id="deal-starbucks" name="preferences" value="Deals:Starbucks Deals" /><label for="deal-starbucks">Starbucks deals</label></li>
+                <li class="child-item"><input type="checkbox" id="deal-flower" name="preferences" value="Deals:Flower Shop Deals" /><label for="deal-flower">Flower shop deals</label></li>
+                <li class="child-item"><input type="checkbox" id="deal-wholefoods" name="preferences" value="Deals:Whole Foods Deals" /><label for="deal-wholefoods">Whole Foods deals</label></li>
+                <li class="child-item"><input type="checkbox" id="deal-costco" name="preferences" value="Deals:Costco Deals" /><label for="deal-costco">Costco deals</label></li>
+                <li class="child-item"><input type="checkbox" id="deal-local" name="preferences" value="Deals:Local Boutique Deals" /><label for="deal-local">Local boutique deals</label></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Create Account</button>
+          <a href="Home_Login.html">Back to login</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('signupForm');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const country = document.getElementById('country').value;
+      const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
+        .map(input => input.value);
+
+      if (!fullName) {
+        showMessage('Please enter your full name.', true);
+        return;
+      }
+
+      if (!email || !email.endsWith('@gmail.com')) {
+        showMessage('Please enter a valid Gmail address ending with @gmail.com.', true);
+        return;
+      }
+
+      if (!password || password.length < 6) {
+        showMessage('Please choose a password with at least 6 characters.', true);
+        return;
+      }
+
+      if (!country) {
+        showMessage('Please select your country.', true);
+        return;
+      }
+
+      if (preferences.length === 0) {
+        showMessage('Please select at least one preference from the tree.', true);
+        return;
+      }
+
+      showMessage('Account created successfully! Redirecting to login...', false);
+
+      setTimeout(() => {
+        window.location.href = 'Home_Login.html';
+      }, 1200);
+    });
+
+    function showMessage(text, isError) {
+      message.textContent = text;
+      message.style.display = 'block';
+      message.style.background = isError ? '#fdeaea' : '#e8f7ff';
+      message.style.color = isError ? '#9b1f1f' : '#0a3f61';
+      message.style.borderColor = isError ? 'rgba(219, 68, 55, 0.18)' : 'rgba(29, 118, 255, 0.18)';
+    }
+  </script>
+</body>
+</html>
