@@ -377,15 +377,15 @@
   </main>
 
   <script>
+    const API_URL = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com/signup';
     const form = document.getElementById('signupForm');
     const message = document.getElementById('message');
 
-    form.addEventListener('submit', event => {
+    form.addEventListener('submit', async event => {
       event.preventDefault();
 
       const fullName = document.getElementById('fullName').value.trim();
       const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
       const country = document.getElementById('country').value;
       const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
         .map(input => input.value);
@@ -400,8 +400,6 @@
         return;
       }
 
-      // Password validation disabled for prototype (using Gmail auth temporarily)
-
       if (!country) {
         showMessage('Please select your country.', true);
         return;
@@ -412,12 +410,48 @@
         return;
       }
 
-      showMessage('Account created successfully! Redirecting to login...', false);
+      setLoading(true);
 
-      setTimeout(() => {
-        window.location.href = 'Home_Login.html';
-      }, 1200);
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fullName,
+            email,
+            country,
+            preferences,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          showMessage(result.message || 'Failed to save your profile. Please try again.', true);
+          setLoading(false);
+          return;
+        }
+
+        showMessage('Profile saved successfully! Redirecting to login...', false);
+        setTimeout(() => {
+          window.location.href = 'Home_Login.html';
+        }, 1200);
+      } catch (error) {
+        console.error('Signup submission failed:', error);
+        showMessage('Network error saving your profile. Please try again.', true);
+        setLoading(false);
+      }
     });
+
+    function setLoading(isLoading) {
+      const button = form.querySelector('button[type="submit"]');
+      if (button) {
+        button.textContent = isLoading ? 'Saving...' : 'Create Account';
+        button.disabled = isLoading;
+      }
+    }
 
     function showMessage(text, isError) {
       message.textContent = text;
