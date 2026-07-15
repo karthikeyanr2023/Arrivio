@@ -279,17 +279,6 @@
 
         <div class="field-grid">
           <div class="field">
-            <label for="streetAddress">Street address</label>
-            <input type="text" id="streetAddress" name="streetAddress" placeholder="123 Main St" />
-          </div>
-          <div class="field">
-            <label for="city">City</label>
-            <input type="text" id="city" name="city" placeholder="City" />
-          </div>
-        </div>
-
-        <div class="field-grid">
-          <div class="field">
             <label for="zipcode">Zip code</label>
             <input type="text" id="zipcode" name="zipcode" placeholder="Zip code" />
           </div>
@@ -347,25 +336,15 @@
             <option>Singapore</option>
           </select>
         </div>
-        <div class="field-grid">
-          <div class="field">
-            <label for="modalStreet">Street address</label>
-            <input type="text" id="modalStreet" placeholder="123 Main St" />
-          </div>
-          <div class="field">
-            <label for="modalCity">City</label>
-            <input type="text" id="modalCity" placeholder="City" />
-          </div>
+        <div class="field">
+          <label for="modalBusinessOption">Business option</label>
+          <select id="modalBusinessOption">
+            <option value="">Select an option for this business type</option>
+          </select>
         </div>
-        <div class="field-grid">
-          <div class="field">
-            <label for="modalPin">Pin</label>
-            <input type="text" id="modalPin" placeholder="Pin code" />
-          </div>
-          <div class="field">
-            <label for="modalNotes">Notes</label>
-            <textarea id="modalNotes" rows="3" placeholder="Add notes about this business"></textarea>
-          </div>
+        <div class="field">
+          <label for="modalNotes">Notes</label>
+          <textarea id="modalNotes" rows="3" placeholder="Add notes about this business"></textarea>
         </div>
       </div>
       <div class="modal-actions">
@@ -381,20 +360,20 @@
     const modalTitle = document.getElementById('modalTitle');
     const modalBusinessType = document.getElementById('modalBusinessType');
     const modalCountry = document.getElementById('modalCountry');
-    const modalStreet = document.getElementById('modalStreet');
-    const modalCity = document.getElementById('modalCity');
-    const modalPin = document.getElementById('modalPin');
-    const modalNotes = document.getElementById('modalNotes');
-    const businessTitle = document.getElementById('businessTitle');
-    const businessSummary = document.getElementById('businessSummary');
-    const businessSummaryText = document.getElementById('businessSummaryText');
-    const form = document.getElementById('merchantForm');
-    const message = document.getElementById('message');
+      const modalBusinessOption = document.getElementById('modalBusinessOption');
+      const modalNotes = document.getElementById('modalNotes');
+      const businessTitle = document.getElementById('businessTitle');
+      const businessSummary = document.getElementById('businessSummary');
+      const businessSummaryText = document.getElementById('businessSummaryText');
+      const form = document.getElementById('merchantForm');
+      const message = document.getElementById('message');
 
-    let selectedBusinessType = '';
-    let businessDetails = null;
-
-    businessType.addEventListener('change', () => {
+      const businessOptions = {
+        Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
+        Events: ['Music Festivals', 'Dance Events', 'Farmers Market', 'Art Fairs', 'Theater Shows'],
+        'Sport Events': ['Cycling', 'Hiking', 'Running', 'Yoga Retreats', 'Beach Volleyball'],
+        Deals: ['Starbucks Deals', 'Flower Shop Deals', 'Whole Foods Deals', 'Costco Deals', 'Local Boutique Deals', 'Parking Deals'],
+      };
       const selected = businessType.value;
       if (!selected) {
         closeModal();
@@ -409,11 +388,12 @@
       modalTitle.textContent = `Merchant details for ${type}`;
       modalOverlay.classList.add('active');
       modalCountry.value = '';
-      modalStreet.value = '';
-      modalCity.value = '';
-      modalPin.value = '';
       modalNotes.value = '';
       businessTitle.value = '';
+
+      const options = businessOptions[type] || [];
+      modalBusinessOption.innerHTML = '<option value="">Select an option for this business type</option>' +
+        options.map(option => `<option value="${option}">${option}</option>`).join('');
     }
 
     function closeModal() {
@@ -426,18 +406,16 @@
       const title = businessTitle.value.trim();
       const type = modalBusinessType.value;
       const country = modalCountry.value;
-      const street = modalStreet.value.trim();
-      const city = modalCity.value.trim();
-      const pin = modalPin.value.trim();
+      const option = modalBusinessOption.value;
       const notes = modalNotes.value.trim();
 
-      if (!title || !type || !country || !street || !city || !pin) {
+      if (!title || !type || !country || !option) {
         showMessage('Please fill in all merchant business details in the pop-up.', true);
         return;
       }
 
-      businessDetails = { title, type, country, street, city, pin, notes };
-      businessSummaryText.textContent = `Business title: ${title}. Type: ${type}. Address: ${street}, ${city}, ${pin}, ${country}. Notes: ${notes || 'None'}.`;
+      businessDetails = { title, type, option, country, notes };
+      businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Country: ${country}. Notes: ${notes || 'None'}.`;
       businessSummary.style.display = 'grid';
       closeModal();
       showMessage('Business details saved. You can now submit the merchant profile.', false);
@@ -449,8 +427,6 @@
       const fullName = document.getElementById('fullName').value.trim();
       const email = document.getElementById('email').value.trim();
       const country = document.getElementById('country').value;
-      const street = document.getElementById('streetAddress').value.trim();
-      const city = document.getElementById('city').value.trim();
       const zipcode = document.getElementById('zipcode').value.trim();
       const businessTypeValue = businessType.value;
 
@@ -464,14 +440,6 @@
       }
       if (!country) {
         showMessage('Please select your country.', true);
-        return;
-      }
-      if (!street) {
-        showMessage('Please enter your street address.', true);
-        return;
-      }
-      if (!city) {
-        showMessage('Please enter your city.', true);
         return;
       }
       if (!zipcode) {
