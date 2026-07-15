@@ -167,20 +167,58 @@
       box-shadow: 0 18px 32px rgba(14, 86, 170, 0.18);
     }
 
-    .login-action .secondary-link {
-      text-align: center;
-      color: var(--primary);
-      font-size: 0.95rem;
+    .profile-selection {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .profile-option {
+      display: grid;
+      gap: 10px;
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: #f8fbff;
+      border: 1px solid rgba(27, 63, 114, 0.08);
       text-decoration: none;
-      font-weight: 600;
+      color: inherit;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
-    .login-action .secondary-link span {
-      color: var(--accent);
+    .profile-option:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 32px rgba(18, 67, 120, 0.12);
+      border-color: rgba(77, 181, 255, 0.25);
     }
 
-    .login-action .secondary-link:hover {
-      text-decoration: underline;
+    .profile-option .option-label {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .profile-option .option-note {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 520px) {
+      .hero-card {
+        border-radius: 28px;
+      }
+
+      .hero-header {
+        padding: 32px 24px 24px;
+      }
+
+      .login-panel {
+        padding: 28px 24px 28px;
+      }
+
+      .profile-selection {
+        grid-template-columns: 1fr;
+      }
     }
 
     .help-text {
@@ -242,8 +280,16 @@
 
           <div class="login-action">
             <button type="submit">Login</button>
-            <a class="secondary-link" href="New_User_Reg.html">Create Profile <span>&rarr;</span></a>
-            <a class="secondary-link" href="Merchant_Login.html">Merchant Login <span>&rarr;</span></a>
+          </div>
+          <div class="profile-selection">
+            <a class="profile-option" href="New_User_Reg.html">
+              <span class="option-label">User Profile</span>
+              <span class="option-note">Create or update a user profile with address, preferences, and email.</span>
+            </a>
+            <a class="profile-option" href="Merchant_Login.html">
+              <span class="option-label">Merchant Profile</span>
+              <span class="option-note">Open the merchant profile page for merchant onboarding and dashboard setup.</span>
+            </a>
           </div>
         </form>
 
