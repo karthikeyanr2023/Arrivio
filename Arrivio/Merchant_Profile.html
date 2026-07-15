@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Merchant Profile</title>
+  <style>
+    :root {
+      --primary: #1f4f7b;
+      --accent: #5b9dff;
+      --surface: #ffffff;
+      --surface-soft: #f3f8ff;
+      --text: #102a44;
+      --muted: #5b6e83;
+      --border: rgba(31, 79, 123, 0.12);
+      --shadow: 0 24px 55px rgba(17, 58, 95, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #eff6ff 0%, #f9fbfe 45%, #f7f9fd 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .page-shell {
+      width: min(720px, 100%);
+      background: var(--surface);
+      border-radius: 32px;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-panel {
+      padding: 40px 36px 28px;
+      background: linear-gradient(135deg, rgba(91, 157, 255, 0.16), rgba(31, 79, 123, 0.16));
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-panel h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3.1vw, 2.7rem);
+      letter-spacing: -0.04em;
+    }
+
+    .hero-panel p {
+      margin: 0;
+      max-width: 660px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .content {
+      padding: 32px 36px 36px;
+      display: grid;
+      gap: 26px;
+    }
+
+    .message {
+      padding: 14px 18px;
+      border-radius: 18px;
+      display: none;
+      border: 1px solid rgba(28, 107, 171, 0.14);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.25s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 6px rgba(91, 157, 255, 0.14);
+      background: #fff;
+    }
+
+    .actions {
+      display: grid;
+      gap: 14px;
+    }
+
+    .actions button,
+    .actions a {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 18px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+    }
+
+    .actions button {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .actions button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(14, 86, 170, 0.18);
+    }
+
+    .actions a {
+      color: var(--primary);
+      background: transparent;
+      text-decoration: none;
+    }
+
+    .selection-summary {
+      border-radius: 20px;
+      padding: 18px 20px;
+      background: #f8fbff;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      color: var(--muted);
+      display: none;
+      gap: 10px;
+    }
+
+    .selection-summary strong {
+      color: var(--text);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 36, 68, 0.38);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 20;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      width: min(600px, 100%);
+      background: var(--surface);
+      border-radius: 28px;
+      box-shadow: 0 35px 80px rgba(15, 43, 89, 0.2);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid rgba(31, 79, 123, 0.08);
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0 24px 24px;
+    }
+
+    .modal-actions button {
+      padding: 12px 18px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .modal-actions .cancel {
+      background: #f3f8ff;
+      color: var(--text);
+    }
+
+    .modal-actions .save {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+    }
+
+    @media (max-width: 720px) {
+      .field-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero-panel">
+      <h1>Merchant Profile</h1>
+      <p>Create or edit a merchant profile with contact information, business type, and merchant details.</p>
+    </section>
+
+    <section class="content">
+      <div id="message" class="message"></div>
+
+      <form id="merchantForm" autocomplete="off">
+        <div class="field-grid">
+          <div class="field">
+            <label for="fullName">Name</label>
+            <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" />
+          </div>
+          <div class="field">
+            <label for="email">User Name (Gmail only)</label>
+            <input type="email" id="email" name="email" placeholder="yourname@gmail.com" />
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="password">Password (disabled for prototype)</label>
+            <input type="password" id="password" name="password" placeholder="Disabled for prototype" disabled />
+          </div>
+          <div class="field">
+            <label for="country">Country</label>
+            <select id="country" name="country">
+              <option value="">Select country</option>
+              <option>United States</option>
+              <option>Canada</option>
+              <option>United Kingdom</option>
+              <option>Australia</option>
+              <option>India</option>
+              <option>Germany</option>
+              <option>France</option>
+              <option>Japan</option>
+              <option>Singapore</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="streetAddress">Street address</label>
+            <input type="text" id="streetAddress" name="streetAddress" placeholder="123 Main St" />
+          </div>
+          <div class="field">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="City" />
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="zipcode">Zip code</label>
+            <input type="text" id="zipcode" name="zipcode" placeholder="Zip code" />
+          </div>
+          <div class="field">
+            <label for="businessType">Business Type</label>
+            <select id="businessType" name="businessType">
+              <option value="">Select one</option>
+              <option value="Food">Food</option>
+              <option value="Events">Events</option>
+              <option value="Sport Events">Sport Events</option>
+              <option value="Deals">Deals</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="businessSummary" class="selection-summary">
+          <strong>Merchant business details are ready.</strong>
+          <p id="businessSummaryText"></p>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Save Merchant Profile</button>
+          <a href="Home_Login.html">Back to login</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Merchant Business Details</h2>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="businessTitle">Business title</label>
+          <input type="text" id="businessTitle" placeholder="Enter business title" />
+        </div>
+        <div class="field">
+          <label for="modalBusinessType">Business Type</label>
+          <input type="text" id="modalBusinessType" disabled />
+        </div>
+        <div class="field">
+          <label for="modalCountry">Country</label>
+          <select id="modalCountry">
+            <option value="">Select country</option>
+            <option>United States</option>
+            <option>Canada</option>
+            <option>United Kingdom</option>
+            <option>Australia</option>
+            <option>India</option>
+            <option>Germany</option>
+            <option>France</option>
+            <option>Japan</option>
+            <option>Singapore</option>
+          </select>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label for="modalStreet">Street address</label>
+            <input type="text" id="modalStreet" placeholder="123 Main St" />
+          </div>
+          <div class="field">
+            <label for="modalCity">City</label>
+            <input type="text" id="modalCity" placeholder="City" />
+          </div>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <label for="modalPin">Pin</label>
+            <input type="text" id="modalPin" placeholder="Pin code" />
+          </div>
+          <div class="field">
+            <label for="modalNotes">Notes</label>
+            <textarea id="modalNotes" rows="3" placeholder="Add notes about this business"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="cancel" id="closeModal">Cancel</button>
+        <button type="button" class="save" id="saveModal">Save details</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const businessType = document.getElementById('businessType');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBusinessType = document.getElementById('modalBusinessType');
+    const modalCountry = document.getElementById('modalCountry');
+    const modalStreet = document.getElementById('modalStreet');
+    const modalCity = document.getElementById('modalCity');
+    const modalPin = document.getElementById('modalPin');
+    const modalNotes = document.getElementById('modalNotes');
+    const businessTitle = document.getElementById('businessTitle');
+    const businessSummary = document.getElementById('businessSummary');
+    const businessSummaryText = document.getElementById('businessSummaryText');
+    const form = document.getElementById('merchantForm');
+    const message = document.getElementById('message');
+
+    let selectedBusinessType = '';
+    let businessDetails = null;
+
+    businessType.addEventListener('change', () => {
+      const selected = businessType.value;
+      if (!selected) {
+        closeModal();
+        return;
+      }
+      selectedBusinessType = selected;
+      openModal(selected);
+    });
+
+    function openModal(type) {
+      modalBusinessType.value = type;
+      modalTitle.textContent = `Merchant details for ${type}`;
+      modalOverlay.classList.add('active');
+      modalCountry.value = '';
+      modalStreet.value = '';
+      modalCity.value = '';
+      modalPin.value = '';
+      modalNotes.value = '';
+      businessTitle.value = '';
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+    }
+
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+
+    document.getElementById('saveModal').addEventListener('click', () => {
+      const title = businessTitle.value.trim();
+      const type = modalBusinessType.value;
+      const country = modalCountry.value;
+      const street = modalStreet.value.trim();
+      const city = modalCity.value.trim();
+      const pin = modalPin.value.trim();
+      const notes = modalNotes.value.trim();
+
+      if (!title || !type || !country || !street || !city || !pin) {
+        showMessage('Please fill in all merchant business details in the pop-up.', true);
+        return;
+      }
+
+      businessDetails = { title, type, country, street, city, pin, notes };
+      businessSummaryText.textContent = `Business title: ${title}. Type: ${type}. Address: ${street}, ${city}, ${pin}, ${country}. Notes: ${notes || 'None'}.`;
+      businessSummary.style.display = 'grid';
+      closeModal();
+      showMessage('Business details saved. You can now submit the merchant profile.', false);
+    });
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const country = document.getElementById('country').value;
+      const street = document.getElementById('streetAddress').value.trim();
+      const city = document.getElementById('city').value.trim();
+      const zipcode = document.getElementById('zipcode').value.trim();
+      const businessTypeValue = businessType.value;
+
+      if (!fullName) {
+        showMessage('Please enter your full name.', true);
+        return;
+      }
+      if (!email || !email.endsWith('@gmail.com')) {
+        showMessage('Please enter a valid Gmail address ending with @gmail.com.', true);
+        return;
+      }
+      if (!country) {
+        showMessage('Please select your country.', true);
+        return;
+      }
+      if (!street) {
+        showMessage('Please enter your street address.', true);
+        return;
+      }
+      if (!city) {
+        showMessage('Please enter your city.', true);
+        return;
+      }
+      if (!zipcode) {
+        showMessage('Please enter your zip code.', true);
+        return;
+      }
+      if (!businessTypeValue) {
+        showMessage('Please select a business type.', true);
+        return;
+      }
+      if (!businessDetails || businessDetails.type !== businessTypeValue) {
+        showMessage('Please complete the merchant business pop-up after selecting a business type.', true);
+        return;
+      }
+
+      showMessage('Merchant profile saved successfully.', false);
+      setTimeout(() => {
+        window.location.href = 'Home_Login.html';
+      }, 1200);
+    });
+
+    function showMessage(text, isError) {
+      message.textContent = text;
+      message.style.display = 'block';
+      message.style.background = isError ? '#fdeaea' : '#e8f7ff';
+      message.style.color = isError ? '#9b1f1f' : '#0a3f61';
+      message.style.borderColor = isError ? 'rgba(219, 68, 55, 0.18)' : 'rgba(29, 118, 255, 0.18)';
+    }
+  </script>
+</body>
+</html>
