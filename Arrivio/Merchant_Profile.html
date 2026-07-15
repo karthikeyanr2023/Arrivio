@@ -360,20 +360,25 @@
     const modalTitle = document.getElementById('modalTitle');
     const modalBusinessType = document.getElementById('modalBusinessType');
     const modalCountry = document.getElementById('modalCountry');
-      const modalBusinessOption = document.getElementById('modalBusinessOption');
-      const modalNotes = document.getElementById('modalNotes');
-      const businessTitle = document.getElementById('businessTitle');
-      const businessSummary = document.getElementById('businessSummary');
-      const businessSummaryText = document.getElementById('businessSummaryText');
-      const form = document.getElementById('merchantForm');
-      const message = document.getElementById('message');
+    const modalBusinessOption = document.getElementById('modalBusinessOption');
+    const modalNotes = document.getElementById('modalNotes');
+    const businessTitle = document.getElementById('businessTitle');
+    const businessSummary = document.getElementById('businessSummary');
+    const businessSummaryText = document.getElementById('businessSummaryText');
+    const form = document.getElementById('merchantForm');
+    const message = document.getElementById('message');
 
-      const businessOptions = {
-        Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
-        Events: ['Music Festivals', 'Dance Events', 'Farmers Market', 'Art Fairs', 'Theater Shows'],
-        'Sport Events': ['Cycling', 'Hiking', 'Running', 'Yoga Retreats', 'Beach Volleyball'],
-        Deals: ['Starbucks Deals', 'Flower Shop Deals', 'Whole Foods Deals', 'Costco Deals', 'Local Boutique Deals', 'Parking Deals'],
-      };
+    const businessOptions = {
+      Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
+      Events: ['Music Festivals', 'Dance Events', 'Farmers Market', 'Art Fairs', 'Theater Shows'],
+      'Sport Events': ['Cycling', 'Hiking', 'Running', 'Yoga Retreats', 'Beach Volleyball'],
+      Deals: ['Starbucks Deals', 'Flower Shop Deals', 'Whole Foods Deals', 'Costco Deals', 'Local Boutique Deals', 'Parking Deals'],
+    };
+
+    let selectedBusinessType = '';
+    let businessDetails = null;
+
+    businessType.addEventListener('change', () => {
       const selected = businessType.value;
       if (!selected) {
         closeModal();
