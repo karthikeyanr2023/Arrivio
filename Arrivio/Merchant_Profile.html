@@ -279,8 +279,19 @@
 
         <div class="field-grid">
           <div class="field">
-            <label for="zipcode">Zip code</label>
-            <input type="text" id="zipcode" name="zipcode" placeholder="Zip code" />
+            <label for="streetAddress">Street address</label>
+            <input type="text" id="streetAddress" name="streetAddress" placeholder="123 Main St" />
+          </div>
+          <div class="field">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="City" />
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label for="pin">Pin code</label>
+            <input type="text" id="pin" name="pin" placeholder="Pin code" />
           </div>
           <div class="field">
             <label for="businessType">Business Type</label>
@@ -322,21 +333,6 @@
           <input type="text" id="modalBusinessType" disabled />
         </div>
         <div class="field">
-          <label for="modalCountry">Country</label>
-          <select id="modalCountry">
-            <option value="">Select country</option>
-            <option>United States</option>
-            <option>Canada</option>
-            <option>United Kingdom</option>
-            <option>Australia</option>
-            <option>India</option>
-            <option>Germany</option>
-            <option>France</option>
-            <option>Japan</option>
-            <option>Singapore</option>
-          </select>
-        </div>
-        <div class="field">
           <label for="modalBusinessOption">Business option</label>
           <select id="modalBusinessOption">
             <option value="">Select an option for this business type</option>
@@ -360,7 +356,6 @@
       const modalOverlay = document.getElementById('modalOverlay');
       const modalTitle = document.getElementById('modalTitle');
       const modalBusinessType = document.getElementById('modalBusinessType');
-      const modalCountry = document.getElementById('modalCountry');
       const modalBusinessOption = document.getElementById('modalBusinessOption');
       const modalNotes = document.getElementById('modalNotes');
       const businessTitle = document.getElementById('businessTitle');
@@ -393,7 +388,6 @@
         modalBusinessType.value = type;
         modalTitle.textContent = `Merchant details for ${type}`;
         modalOverlay.classList.add('active');
-        modalCountry.value = '';
         modalNotes.value = '';
         businessTitle.value = '';
 
@@ -426,17 +420,16 @@
         saveModalButton.addEventListener('click', () => {
           const title = businessTitle.value.trim();
           const type = modalBusinessType.value;
-          const country = modalCountry.value;
           const option = modalBusinessOption.value;
           const notes = modalNotes.value.trim();
 
-          if (!title || !type || !country || !option) {
+          if (!title || !type || !option) {
             showMessage('Please fill in all merchant business details in the pop-up.', true);
             return;
           }
 
-          businessDetails = { title, type, option, country, notes };
-          businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Country: ${country}. Notes: ${notes || 'None'}.`;
+          businessDetails = { title, type, option, notes };
+          businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Notes: ${notes || 'None'}.`;
           businessSummary.style.display = 'grid';
           closeModal();
           showMessage('Business details saved. You can now submit the merchant profile.', false);
@@ -450,7 +443,9 @@
           const fullName = document.getElementById('fullName').value.trim();
           const email = document.getElementById('email').value.trim();
           const country = document.getElementById('country').value;
-          const zipcode = document.getElementById('zipcode').value.trim();
+          const streetAddress = document.getElementById('streetAddress').value.trim();
+          const city = document.getElementById('city').value.trim();
+          const pin = document.getElementById('pin').value.trim();
           const businessTypeValue = businessType.value;
 
           if (!fullName) {
@@ -465,8 +460,16 @@
             showMessage('Please select your country.', true);
             return;
           }
-          if (!zipcode) {
-            showMessage('Please enter your zip code.', true);
+          if (!streetAddress) {
+            showMessage('Please enter your street address.', true);
+            return;
+          }
+          if (!city) {
+            showMessage('Please enter your city.', true);
+            return;
+          }
+          if (!pin) {
+            showMessage('Please enter your pin code.', true);
             return;
           }
           if (!businessTypeValue) {
