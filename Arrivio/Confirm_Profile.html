@@ -256,6 +256,18 @@
           <strong id="displayCountry"></strong>
         </div>
         <div class="profile-row">
+          <span>Street address</span>
+          <strong id="displayStreet"></strong>
+        </div>
+        <div class="profile-row">
+          <span>City</span>
+          <strong id="displayCity"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Zip code</span>
+          <strong id="displayZipcode"></strong>
+        </div>
+        <div class="profile-row">
           <span>Preferences</span>
           <ul id="displayPreferences" class="prefs-list"></ul>
         </div>
@@ -292,6 +304,18 @@
           </select>
         </div>
         <div class="form-row">
+          <label for="streetInput">Street address</label>
+          <input type="text" id="streetInput" name="streetAddress" placeholder="123 Main St" />
+        </div>
+        <div class="form-row">
+          <label for="cityInput">City</label>
+          <input type="text" id="cityInput" name="city" placeholder="City" />
+        </div>
+        <div class="form-row">
+          <label for="zipcodeInput">Zip code</label>
+          <input type="text" id="zipcodeInput" name="zipcode" placeholder="Zip code" />
+        </div>
+        <div class="form-row">
           <label>Preferences</label>
           <div id="editPreferences" class="prefs-list"></div>
         </div>
@@ -317,11 +341,17 @@
     const displayFullName = document.getElementById('displayFullName');
     const displayEmail = document.getElementById('displayEmail');
     const displayCountry = document.getElementById('displayCountry');
+    const displayStreet = document.getElementById('displayStreet');
+    const displayCity = document.getElementById('displayCity');
+    const displayZipcode = document.getElementById('displayZipcode');
     const displayPreferences = document.getElementById('displayPreferences');
 
     const fullNameInput = document.getElementById('fullNameInput');
     const emailInput = document.getElementById('emailInput');
     const countryInput = document.getElementById('countryInput');
+    const streetInput = document.getElementById('streetInput');
+    const cityInput = document.getElementById('cityInput');
+    const zipcodeInput = document.getElementById('zipcodeInput');
     const editPreferences = document.getElementById('editPreferences');
 
     const editButton = document.getElementById('editButton');
@@ -417,11 +447,17 @@
       displayFullName.textContent = profile.fullName || '';
       displayEmail.textContent = profile.email || '';
       displayCountry.textContent = profile.country || '';
+      displayStreet.textContent = (profile.address && profile.address.street) || '';
+      displayCity.textContent = (profile.address && profile.address.city) || '';
+      displayZipcode.textContent = (profile.address && profile.address.zipcode) || '';
       renderPreferences(profile.preferences || [], displayPreferences);
 
       fullNameInput.value = profile.fullName || '';
       emailInput.value = profile.email || '';
       countryInput.value = profile.country || '';
+      streetInput.value = (profile.address && profile.address.street) || '';
+      cityInput.value = (profile.address && profile.address.city) || '';
+      zipcodeInput.value = (profile.address && profile.address.zipcode) || '';
       renderCheckboxes(profile.preferences || []);
     }
 
@@ -447,6 +483,7 @@
         fullName: profile.fullName,
         email: profile.email,
         country: profile.country,
+        address: profile.address || {},
         preferences: profile.preferences,
       };
 
@@ -503,6 +540,11 @@
         fullName: fullNameInput.value.trim(),
         email: emailInput.value.trim(),
         country: countryInput.value,
+        address: {
+          street: streetInput.value.trim(),
+          city: cityInput.value.trim(),
+          zipcode: zipcodeInput.value.trim(),
+        },
         preferences: updatedPreferences,
       };
 

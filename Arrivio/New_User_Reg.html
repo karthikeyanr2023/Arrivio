@@ -294,6 +294,21 @@
               </select>
             </div>
           </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="streetAddress">Street address</label>
+              <input type="text" id="streetAddress" name="streetAddress" placeholder="123 Main St" />
+            </div>
+            <div class="field">
+              <label for="city">City</label>
+              <input type="text" id="city" name="city" placeholder="City" />
+            </div>
+            <div class="field">
+              <label for="zipcode">Zip code</label>
+              <input type="text" id="zipcode" name="zipcode" placeholder="Zip code" />
+            </div>
+          </div>
         </div>
 
         <div class="tree-panel">
@@ -387,6 +402,9 @@
       const fullName = document.getElementById('fullName').value.trim();
       const email = document.getElementById('email').value.trim();
       const country = document.getElementById('country').value;
+      const streetAddress = document.getElementById('streetAddress').value.trim();
+      const city = document.getElementById('city').value.trim();
+      const zipcode = document.getElementById('zipcode').value.trim();
       const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
         .map(input => input.value);
 
@@ -402,6 +420,21 @@
 
       if (!country) {
         showMessage('Please select your country.', true);
+        return;
+      }
+
+      if (!streetAddress) {
+        showMessage('Please enter your street address.', true);
+        return;
+      }
+
+      if (!city) {
+        showMessage('Please enter your city.', true);
+        return;
+      }
+
+      if (!zipcode) {
+        showMessage('Please enter your zip code.', true);
         return;
       }
 
@@ -422,6 +455,11 @@
             fullName,
             email,
             country,
+            address: {
+              street: streetAddress,
+              city,
+              zipcode,
+            },
             preferences,
           }),
         });
@@ -434,7 +472,7 @@
           return;
         }
 
-        const profileData = { fullName, email, country, preferences };
+        const profileData = { fullName, email, country, address: { street: streetAddress, city, zipcode }, preferences };
         localStorage.setItem('pendingProfile', JSON.stringify(profileData));
         showMessage('Profile saved successfully! Redirecting to confirmation...', false);
         setTimeout(() => {
