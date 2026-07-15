@@ -87,6 +87,33 @@
       gap: 8px;
     }
 
+    .poi-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .poi-item input {
+      width: 100%;
+    }
+
+    .add-poi-button {
+      width: fit-content;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
+    .add-poi-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     label {
       font-weight: 600;
       color: var(--text);
@@ -339,6 +366,14 @@
           </select>
         </div>
         <div class="field">
+          <label>POI nearby</label>
+          <div class="poi-list">
+            <div class="poi-item"><input type="text" class="poi-input" placeholder="Enter nearby POI" /></div>
+          </div>
+          <button type="button" id="addPoiBtn" class="add-poi-button">+ Add POI</button>
+          <p class="form-note">Add up to 3 nearby points of interest.</p>
+        </div>
+        <div class="field">
           <label for="modalNotes">Notes</label>
           <textarea id="modalNotes" rows="3" placeholder="Add notes about this business"></textarea>
         </div>
@@ -358,6 +393,8 @@
       const modalBusinessType = document.getElementById('modalBusinessType');
       const modalBusinessOption = document.getElementById('modalBusinessOption');
       const modalNotes = document.getElementById('modalNotes');
+      const poiList = document.querySelector('.poi-list');
+      const addPoiBtn = document.getElementById('addPoiBtn');
       const businessTitle = document.getElementById('businessTitle');
       const businessSummary = document.getElementById('businessSummary');
       const businessSummaryText = document.getElementById('businessSummaryText');
@@ -390,6 +427,8 @@
         modalOverlay.classList.add('active');
         modalNotes.value = '';
         businessTitle.value = '';
+        poiList.innerHTML = '<div class="poi-item"><input type="text" class="poi-input" placeholder="Enter nearby POI" /></div>';
+        addPoiBtn.disabled = false;
 
         const options = businessOptions[type] || [];
         modalBusinessOption.innerHTML = '<option value="">Select an option for this business type</option>' +
@@ -416,20 +455,43 @@
         closeModalButton.addEventListener('click', closeModal);
       }
 
+      if (addPoiBtn) {
+        addPoiBtn.addEventListener('click', () => {
+          const count = poiList.querySelectorAll('.poi-input').length;
+          if (count >= 3) {
+            showMessage('You can add up to 3 nearby POIs only.', true);
+            return;
+          }
+
+          const item = document.createElement('div');
+          item.className = 'poi-item';
+          item.innerHTML = '<input type="text" class="poi-input" placeholder="Enter nearby POI" />';
+          poiList.appendChild(item);
+
+          if (count + 1 >= 3) {
+            addPoiBtn.disabled = true;
+          }
+        });
+      }
+
       if (saveModalButton) {
         saveModalButton.addEventListener('click', () => {
           const title = businessTitle.value.trim();
           const type = modalBusinessType.value;
           const option = modalBusinessOption.value;
           const notes = modalNotes.value.trim();
+          const pois = Array.from(poiList.querySelectorAll('.poi-input'))
+            .map(input => input.value.trim())
+            .filter(Boolean);
 
           if (!title || !type || !option) {
             showMessage('Please fill in all merchant business details in the pop-up.', true);
             return;
           }
 
-          businessDetails = { title, type, option, notes };
-          businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Notes: ${notes || 'None'}.`;
+          businessDetails = { title, type, option, notes, pois };
+          const poiText = pois.length ? ` POIs: ${pois.join(', ')}.` : '';
+          businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Notes: ${notes || 'None'}.${poiText}`;
           businessSummary.style.display = 'grid';
           closeModal();
           showMessage('Business details saved. You can now submit the merchant profile.', false);
