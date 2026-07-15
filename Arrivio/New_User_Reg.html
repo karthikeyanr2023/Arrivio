@@ -434,9 +434,11 @@
           return;
         }
 
-        showMessage('Profile saved successfully! Redirecting to login...', false);
+        const profileData = { fullName, email, country, preferences };
+        localStorage.setItem('pendingProfile', JSON.stringify(profileData));
+        showMessage('Profile saved successfully! Redirecting to confirmation...', false);
         setTimeout(() => {
-          window.location.href = 'Home_Login.html';
+          window.location.href = `Confirm_Profile.html?email=${encodeURIComponent(email)}`;
         }, 1200);
       } catch (error) {
         console.error('Signup submission failed:', error);

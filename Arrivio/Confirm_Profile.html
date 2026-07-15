@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirm Your Profile</title>
+  <style>
+    :root {
+      --primary: #1f4f7b;
+      --accent: #5b9dff;
+      --surface: #ffffff;
+      --surface-soft: #f3f8ff;
+      --text: #102a44;
+      --muted: #5b6e83;
+      --border: rgba(31, 79, 123, 0.12);
+      --shadow: 0 24px 55px rgba(17, 58, 95, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #eff6ff 0%, #f9fbfe 45%, #f7f9fd 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .page-shell {
+      width: min(720px, 100%);
+      background: var(--surface);
+      border-radius: 32px;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-panel {
+      padding: 40px 36px 28px;
+      background: linear-gradient(135deg, rgba(91, 157, 255, 0.16), rgba(31, 79, 123, 0.16));
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-panel h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3.1vw, 2.7rem);
+      letter-spacing: -0.04em;
+    }
+
+    .hero-panel p {
+      margin: 0;
+      max-width: 660px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .content {
+      padding: 32px 36px 36px;
+      display: grid;
+      gap: 26px;
+    }
+
+    .message {
+      padding: 14px 18px;
+      border-radius: 18px;
+      display: none;
+      border: 1px solid rgba(28, 107, 171, 0.14);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .profile-card,
+    .edit-form {
+      display: grid;
+      gap: 18px;
+      background: #f8fbff;
+      border-radius: 24px;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      padding: 24px;
+    }
+
+    .profile-row,
+    .form-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .profile-row span {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .profile-row strong {
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .prefs-list {
+      display: grid;
+      gap: 10px;
+      padding-left: 18px;
+    }
+
+    .prefs-list li {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px 14px;
+      border: 1px solid rgba(31, 79, 123, 0.06);
+      font-size: 0.95rem;
+    }
+
+    label {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.25s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 6px rgba(91, 157, 255, 0.14);
+      background: #fff;
+    }
+
+    .actions {
+      display: grid;
+      gap: 14px;
+    }
+
+    .actions button,
+    .actions a {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 18px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+    }
+
+    .actions button {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .actions button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(14, 86, 170, 0.18);
+    }
+
+    .actions a {
+      color: var(--primary);
+      background: transparent;
+      text-decoration: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      background: #0a3f61;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 10;
+      font-size: 0.95rem;
+    }
+
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 720px) {
+      .page-shell {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero-panel">
+      <h1>Review your profile</h1>
+      <p>Confirm the details saved to your profile. If anything needs to change, use Edit and save your updated information.</p>
+    </section>
+
+    <section class="content">
+      <div class="message" id="message"></div>
+
+      <div id="profileSummary" class="profile-card hidden">
+        <div class="profile-row">
+          <span>Full name</span>
+          <strong id="displayFullName"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Email</span>
+          <strong id="displayEmail"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Country</span>
+          <strong id="displayCountry"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Preferences</span>
+          <ul id="displayPreferences" class="prefs-list"></ul>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="editButton">Edit profile</button>
+          <button type="button" id="confirmButton">Confirm profile</button>
+          <a href="New_User_Reg.html">Back to signup</a>
+        </div>
+      </div>
+
+      <form id="editForm" class="edit-form hidden">
+        <div class="form-row">
+          <label for="fullNameInput">Full name</label>
+          <input type="text" id="fullNameInput" name="fullName" />
+        </div>
+        <div class="form-row">
+          <label for="emailInput">Email</label>
+          <input type="email" id="emailInput" name="email" disabled />
+        </div>
+        <div class="form-row">
+          <label for="countryInput">Country</label>
+          <select id="countryInput" name="country">
+            <option value="">Select country</option>
+            <option>United States</option>
+            <option>Canada</option>
+            <option>United Kingdom</option>
+            <option>Australia</option>
+            <option>India</option>
+            <option>Germany</option>
+            <option>France</option>
+            <option>Japan</option>
+            <option>Singapore</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Preferences</label>
+          <div id="editPreferences" class="prefs-list"></div>
+        </div>
+        <div class="actions">
+          <button type="submit">Save changes</button>
+          <button type="button" id="cancelEdit">Cancel</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_BASE = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com';
+    const PROFILE_URL = `${API_BASE}/profile`;
+    const SIGNUP_URL = `${API_BASE}/signup`;
+    const message = document.getElementById('message');
+    const profileSummary = document.getElementById('profileSummary');
+    const editForm = document.getElementById('editForm');
+    const toast = document.getElementById('toast');
+
+    const displayFullName = document.getElementById('displayFullName');
+    const displayEmail = document.getElementById('displayEmail');
+    const displayCountry = document.getElementById('displayCountry');
+    const displayPreferences = document.getElementById('displayPreferences');
+
+    const fullNameInput = document.getElementById('fullNameInput');
+    const emailInput = document.getElementById('emailInput');
+    const countryInput = document.getElementById('countryInput');
+    const editPreferences = document.getElementById('editPreferences');
+
+    const editButton = document.getElementById('editButton');
+    const confirmButton = document.getElementById('confirmButton');
+    const cancelEdit = document.getElementById('cancelEdit');
+
+    const preferencesOptions = [
+      'Food:Asian',
+      'Food:Italian',
+      'Food:Street Food',
+      'Food:Desserts',
+      'Food:Coffee Shops',
+      'Events:Music Festivals',
+      'Events:Dance',
+      'Events:Farmers Market',
+      'Events:Art Fairs',
+      'Events:Theater',
+      'Sports:Cycling',
+      'Sports:Hiking',
+      'Sports:Running',
+      'Sports:Yoga Retreats',
+      'Sports:Beach Volleyball',
+      'Deals:Starbucks Deals',
+      'Deals:Flower Shop Deals',
+      'Deals:Whole Foods Deals',
+      'Deals:Costco Deals',
+      'Deals:Local Boutique Deals',
+      'Deals:Parking Deals',
+    ];
+
+    let currentProfile = null;
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    function showMessage(text, isError = false) {
+      message.textContent = text;
+      message.style.display = 'block';
+      message.style.background = isError ? '#fdeaea' : '#e8f7ff';
+      message.style.color = isError ? '#9b1f1f' : '#0a3f61';
+      message.style.borderColor = isError ? 'rgba(219, 68, 55, 0.18)' : 'rgba(29, 118, 255, 0.18)';
+    }
+
+    function hideMessage() {
+      message.style.display = 'none';
+    }
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function renderPreferences(items, container) {
+      container.innerHTML = '';
+      items.forEach(pref => {
+        const li = document.createElement('li');
+        li.textContent = pref;
+        container.appendChild(li);
+      });
+    }
+
+    function renderCheckboxes(selected = []) {
+      editPreferences.innerHTML = '';
+      preferencesOptions.forEach(value => {
+        const label = document.createElement('label');
+        label.style.width = '100%';
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.gap = '10px';
+        label.style.background = '#fff';
+        label.style.border = '1px solid rgba(31, 79, 123, 0.06)';
+        label.style.borderRadius = '14px';
+        label.style.padding = '12px 14px';
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.value = value;
+        input.checked = selected.includes(value);
+        input.style.accentColor = 'var(--accent)';
+
+        const text = document.createTextNode(value.replace(':', ' — '));
+        label.appendChild(input);
+        label.appendChild(text);
+        editPreferences.appendChild(label);
+      });
+    }
+
+    function populateProfile(profile) {
+      currentProfile = profile;
+      displayFullName.textContent = profile.fullName || '';
+      displayEmail.textContent = profile.email || '';
+      displayCountry.textContent = profile.country || '';
+      renderPreferences(profile.preferences || [], displayPreferences);
+
+      fullNameInput.value = profile.fullName || '';
+      emailInput.value = profile.email || '';
+      countryInput.value = profile.country || '';
+      renderCheckboxes(profile.preferences || []);
+    }
+
+    async function fetchProfile(email) {
+      try {
+        const response = await fetch(`${PROFILE_URL}?email=${encodeURIComponent(email)}`);
+        if (!response.ok) {
+          throw new Error('Profile not found');
+        }
+        const data = await response.json();
+        return data.data || data;
+      } catch (error) {
+        const stored = localStorage.getItem('pendingProfile');
+        if (stored) {
+          return JSON.parse(stored);
+        }
+        throw error;
+      }
+    }
+
+    async function saveProfile(profile) {
+      const request = {
+        fullName: profile.fullName,
+        email: profile.email,
+        country: profile.country,
+        preferences: profile.preferences,
+      };
+
+      const response = await fetch(SIGNUP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Unable to save profile');
+      }
+
+      const json = await response.json();
+      return json;
+    }
+
+    function showSummary() {
+      profileSummary.classList.remove('hidden');
+      editForm.classList.add('hidden');
+      hideMessage();
+    }
+
+    function showEditor() {
+      profileSummary.classList.add('hidden');
+      editForm.classList.remove('hidden');
+      hideMessage();
+    }
+
+    editButton.addEventListener('click', () => {
+      showEditor();
+    });
+
+    cancelEdit.addEventListener('click', () => {
+      populateProfile(currentProfile);
+      showSummary();
+    });
+
+    confirmButton.addEventListener('click', () => {
+      showToast('Your profile saved successfully. Redirecting to login...');
+      setTimeout(() => {
+        window.location.href = 'Home_Login.html';
+      }, 1400);
+    });
+
+    editForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const updatedPreferences = Array.from(editPreferences.querySelectorAll('input[type="checkbox"]:checked')).map(
+        input => input.value,
+      );
+
+      const updatedProfile = {
+        fullName: fullNameInput.value.trim(),
+        email: emailInput.value.trim(),
+        country: countryInput.value,
+        preferences: updatedPreferences,
+      };
+
+      if (!updatedProfile.fullName) {
+        showMessage('Please enter your full name.', true);
+        return;
+      }
+
+      if (!updatedProfile.country) {
+        showMessage('Please select your country.', true);
+        return;
+      }
+
+      if (!updatedProfile.preferences.length) {
+        showMessage('Please select at least one preference.', true);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        await saveProfile(updatedProfile);
+        currentProfile = updatedProfile;
+        populateProfile(currentProfile);
+        showToast('Profile updated successfully.');
+        showSummary();
+      } catch (error) {
+        showMessage(error.message || 'Unable to update profile.', true);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    function setLoading(isLoading) {
+      const controls = editForm.querySelectorAll('button');
+      controls.forEach(button => {
+        button.disabled = isLoading;
+        if (button.type === 'submit') {
+          button.textContent = isLoading ? 'Saving...' : 'Save changes';
+        }
+      });
+    }
+
+    async function init() {
+      const email = getQueryParam('email');
+      if (!email) {
+        showMessage('Missing email address. Please return to signup.', true);
+        return;
+      }
+
+      try {
+        const profile = await fetchProfile(email);
+        populateProfile(profile);
+        profileSummary.classList.remove('hidden');
+      } catch (error) {
+        showMessage('Unable to load profile from DynamoDB. Please return to signup.', true);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
