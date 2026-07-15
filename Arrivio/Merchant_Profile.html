@@ -355,124 +355,136 @@
   </div>
 
   <script>
-    const businessType = document.getElementById('businessType');
-    const modalOverlay = document.getElementById('modalOverlay');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBusinessType = document.getElementById('modalBusinessType');
-    const modalCountry = document.getElementById('modalCountry');
-    const modalBusinessOption = document.getElementById('modalBusinessOption');
-    const modalNotes = document.getElementById('modalNotes');
-    const businessTitle = document.getElementById('businessTitle');
-    const businessSummary = document.getElementById('businessSummary');
-    const businessSummaryText = document.getElementById('businessSummaryText');
-    const form = document.getElementById('merchantForm');
-    const message = document.getElementById('message');
+    window.addEventListener('DOMContentLoaded', () => {
+      const businessType = document.getElementById('businessType');
+      const modalOverlay = document.getElementById('modalOverlay');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalBusinessType = document.getElementById('modalBusinessType');
+      const modalCountry = document.getElementById('modalCountry');
+      const modalBusinessOption = document.getElementById('modalBusinessOption');
+      const modalNotes = document.getElementById('modalNotes');
+      const businessTitle = document.getElementById('businessTitle');
+      const businessSummary = document.getElementById('businessSummary');
+      const businessSummaryText = document.getElementById('businessSummaryText');
+      const form = document.getElementById('merchantForm');
+      const message = document.getElementById('message');
+      const closeModalButton = document.getElementById('closeModal');
+      const saveModalButton = document.getElementById('saveModal');
 
-    const businessOptions = {
-      Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
-      Events: ['Music Festivals', 'Dance Events', 'Farmers Market', 'Art Fairs', 'Theater Shows'],
-      'Sport Events': ['Cycling', 'Hiking', 'Running', 'Yoga Retreats', 'Beach Volleyball'],
-      Deals: ['Starbucks Deals', 'Flower Shop Deals', 'Whole Foods Deals', 'Costco Deals', 'Local Boutique Deals', 'Parking Deals'],
-    };
+      const businessOptions = {
+        Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
+        Events: ['Music Festivals', 'Dance Events', 'Farmers Market', 'Art Fairs', 'Theater Shows'],
+        'Sport Events': ['Cycling', 'Hiking', 'Running', 'Yoga Retreats', 'Beach Volleyball'],
+        Deals: ['Starbucks Deals', 'Flower Shop Deals', 'Whole Foods Deals', 'Costco Deals', 'Local Boutique Deals', 'Parking Deals'],
+      };
 
-    let selectedBusinessType = '';
-    let businessDetails = null;
+      let selectedBusinessType = '';
+      let businessDetails = null;
 
-    businessType.addEventListener('change', () => {
-      const selected = businessType.value;
-      if (!selected) {
-        closeModal();
-        return;
+      function showMessage(text, isError) {
+        message.textContent = text;
+        message.style.display = 'block';
+        message.style.background = isError ? '#fdeaea' : '#e8f7ff';
+        message.style.color = isError ? '#9b1f1f' : '#0a3f61';
+        message.style.borderColor = isError ? 'rgba(219, 68, 55, 0.18)' : 'rgba(29, 118, 255, 0.18)';
       }
-      selectedBusinessType = selected;
-      openModal(selected);
+
+      function openModal(type) {
+        modalBusinessType.value = type;
+        modalTitle.textContent = `Merchant details for ${type}`;
+        modalOverlay.classList.add('active');
+        modalCountry.value = '';
+        modalNotes.value = '';
+        businessTitle.value = '';
+
+        const options = businessOptions[type] || [];
+        modalBusinessOption.innerHTML = '<option value="">Select an option for this business type</option>' +
+          options.map(option => `<option value="${option}">${option}</option>`).join('');
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove('active');
+      }
+
+      if (businessType) {
+        businessType.addEventListener('change', () => {
+          const selected = businessType.value;
+          if (!selected) {
+            closeModal();
+            return;
+          }
+          selectedBusinessType = selected;
+          openModal(selected);
+        });
+      }
+
+      if (closeModalButton) {
+        closeModalButton.addEventListener('click', closeModal);
+      }
+
+      if (saveModalButton) {
+        saveModalButton.addEventListener('click', () => {
+          const title = businessTitle.value.trim();
+          const type = modalBusinessType.value;
+          const country = modalCountry.value;
+          const option = modalBusinessOption.value;
+          const notes = modalNotes.value.trim();
+
+          if (!title || !type || !country || !option) {
+            showMessage('Please fill in all merchant business details in the pop-up.', true);
+            return;
+          }
+
+          businessDetails = { title, type, option, country, notes };
+          businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Country: ${country}. Notes: ${notes || 'None'}.`;
+          businessSummary.style.display = 'grid';
+          closeModal();
+          showMessage('Business details saved. You can now submit the merchant profile.', false);
+        });
+      }
+
+      if (form) {
+        form.addEventListener('submit', event => {
+          event.preventDefault();
+
+          const fullName = document.getElementById('fullName').value.trim();
+          const email = document.getElementById('email').value.trim();
+          const country = document.getElementById('country').value;
+          const zipcode = document.getElementById('zipcode').value.trim();
+          const businessTypeValue = businessType.value;
+
+          if (!fullName) {
+            showMessage('Please enter your full name.', true);
+            return;
+          }
+          if (!email || !email.endsWith('@gmail.com')) {
+            showMessage('Please enter a valid Gmail address ending with @gmail.com.', true);
+            return;
+          }
+          if (!country) {
+            showMessage('Please select your country.', true);
+            return;
+          }
+          if (!zipcode) {
+            showMessage('Please enter your zip code.', true);
+            return;
+          }
+          if (!businessTypeValue) {
+            showMessage('Please select a business type.', true);
+            return;
+          }
+          if (!businessDetails || businessDetails.type !== businessTypeValue) {
+            showMessage('Please complete the merchant business pop-up after selecting a business type.', true);
+            return;
+          }
+
+          showMessage('Merchant profile saved successfully.', false);
+          setTimeout(() => {
+            window.location.href = 'Home_Login.html';
+          }, 1200);
+        });
+      }
     });
-
-    function openModal(type) {
-      modalBusinessType.value = type;
-      modalTitle.textContent = `Merchant details for ${type}`;
-      modalOverlay.classList.add('active');
-      modalCountry.value = '';
-      modalNotes.value = '';
-      businessTitle.value = '';
-
-      const options = businessOptions[type] || [];
-      modalBusinessOption.innerHTML = '<option value="">Select an option for this business type</option>' +
-        options.map(option => `<option value="${option}">${option}</option>`).join('');
-    }
-
-    function closeModal() {
-      modalOverlay.classList.remove('active');
-    }
-
-    document.getElementById('closeModal').addEventListener('click', closeModal);
-
-    document.getElementById('saveModal').addEventListener('click', () => {
-      const title = businessTitle.value.trim();
-      const type = modalBusinessType.value;
-      const country = modalCountry.value;
-      const option = modalBusinessOption.value;
-      const notes = modalNotes.value.trim();
-
-      if (!title || !type || !country || !option) {
-        showMessage('Please fill in all merchant business details in the pop-up.', true);
-        return;
-      }
-
-      businessDetails = { title, type, option, country, notes };
-      businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Country: ${country}. Notes: ${notes || 'None'}.`;
-      businessSummary.style.display = 'grid';
-      closeModal();
-      showMessage('Business details saved. You can now submit the merchant profile.', false);
-    });
-
-    form.addEventListener('submit', event => {
-      event.preventDefault();
-
-      const fullName = document.getElementById('fullName').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const country = document.getElementById('country').value;
-      const zipcode = document.getElementById('zipcode').value.trim();
-      const businessTypeValue = businessType.value;
-
-      if (!fullName) {
-        showMessage('Please enter your full name.', true);
-        return;
-      }
-      if (!email || !email.endsWith('@gmail.com')) {
-        showMessage('Please enter a valid Gmail address ending with @gmail.com.', true);
-        return;
-      }
-      if (!country) {
-        showMessage('Please select your country.', true);
-        return;
-      }
-      if (!zipcode) {
-        showMessage('Please enter your zip code.', true);
-        return;
-      }
-      if (!businessTypeValue) {
-        showMessage('Please select a business type.', true);
-        return;
-      }
-      if (!businessDetails || businessDetails.type !== businessTypeValue) {
-        showMessage('Please complete the merchant business pop-up after selecting a business type.', true);
-        return;
-      }
-
-      showMessage('Merchant profile saved successfully.', false);
-      setTimeout(() => {
-        window.location.href = 'Home_Login.html';
-      }, 1200);
-    });
-
-    function showMessage(text, isError) {
-      message.textContent = text;
-      message.style.display = 'block';
-      message.style.background = isError ? '#fdeaea' : '#e8f7ff';
-      message.style.color = isError ? '#9b1f1f' : '#0a3f61';
-      message.style.borderColor = isError ? 'rgba(219, 68, 55, 0.18)' : 'rgba(29, 118, 255, 0.18)';
-    }
   </script>
 </body>
 </html>
