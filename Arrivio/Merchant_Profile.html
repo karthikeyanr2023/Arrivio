@@ -571,9 +571,7 @@
           businessSummary.style.display = 'grid';
           closeModal();
           showMessage('Merchant profile saved successfully. Redirecting to confirmation...', false);
-          setTimeout(() => {
-            window.location.href = `Confirm_Merchant_Profile.html?email=${encodeURIComponent(email)}`;
-          }, 900);
+          window.location.href = `Confirm_Merchant_Profile.html?email=${encodeURIComponent(email)}`;
         });
       }
 
