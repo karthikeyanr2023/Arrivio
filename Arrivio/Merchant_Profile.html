@@ -412,6 +412,7 @@
 
       let selectedBusinessType = '';
       let businessDetails = null;
+      let isSavingMerchantProfile = false;
 
       function showMessage(text, isError) {
         message.textContent = text;
@@ -476,6 +477,19 @@
 
       if (saveModalButton) {
         saveModalButton.addEventListener('click', () => {
+          if (isSavingMerchantProfile) {
+            return;
+          }
+          isSavingMerchantProfile = true;
+          saveModalButton.disabled = true;
+          saveModalButton.textContent = 'Saving...';
+
+          const resetSaveState = () => {
+            isSavingMerchantProfile = false;
+            saveModalButton.disabled = false;
+            saveModalButton.textContent = 'Save details';
+          };
+
           const title = businessTitle.value.trim();
           const type = modalBusinessType.value;
           const option = modalBusinessOption.value;
@@ -484,17 +498,82 @@
             .map(input => input.value.trim())
             .filter(Boolean);
 
+          const fullName = document.getElementById('fullName').value.trim();
+          const email = document.getElementById('email').value.trim();
+          const country = document.getElementById('country').value;
+          const streetAddress = document.getElementById('streetAddress').value.trim();
+          const city = document.getElementById('city').value.trim();
+          const pin = document.getElementById('pin').value.trim();
+          const businessTypeValue = businessType.value;
+
           if (!title || !type || !option) {
             showMessage('Please fill in all merchant business details in the pop-up.', true);
+            resetSaveState();
+            return;
+          }
+          if (!fullName) {
+            showMessage('Please enter your full name on the merchant page before confirming.', true);
+            resetSaveState();
+            return;
+          }
+          if (!email || !email.endsWith('@gmail.com')) {
+            showMessage('Please enter a valid Gmail address on the merchant page before confirming.', true);
+            resetSaveState();
+            return;
+          }
+          if (!country) {
+            showMessage('Please select your country on the merchant page before confirming.', true);
+            resetSaveState();
+            return;
+          }
+          if (!streetAddress) {
+            showMessage('Please enter your street address on the merchant page before confirming.', true);
+            resetSaveState();
+            return;
+          }
+          if (!city) {
+            showMessage('Please enter your city on the merchant page before confirming.', true);
+            resetSaveState();
+            return;
+          }
+          if (!pin) {
+            showMessage('Please enter your pin code on the merchant page before confirming.', true);
+            resetSaveState();
+            return;
+          }
+          if (!businessTypeValue) {
+            showMessage('Please select a business type on the merchant page before confirming.', true);
+            resetSaveState();
+            return;
+          }
+          if (businessTypeValue !== type) {
+            showMessage('Please make sure the business type on the merchant page matches the popup selection.', true);
+            resetSaveState();
             return;
           }
 
           businessDetails = { title, type, option, notes, pois };
+          const merchantProfileData = {
+            fullName,
+            email,
+            country,
+            address: {
+              street: streetAddress,
+              city,
+              zipcode: pin,
+            },
+            businessDetails,
+          };
+          localStorage.setItem('pendingProfile', JSON.stringify(merchantProfileData));
+
           const poiText = pois.length ? ` POIs: ${pois.join(', ')}.` : '';
           businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Notes: ${notes || 'None'}.${poiText}`;
           businessSummary.style.display = 'grid';
           closeModal();
-          showMessage('Business details saved. You can now submit the merchant profile.', false);
+          showMessage('Merchant profile saved successfully. Redirecting to confirmation...', false);
+          setTimeout(() => {
+            window.location.href = `Confirm_Merchant_Profile.html?email=${encodeURIComponent(email)}`;
+          }, 900);
         });
       }
 
