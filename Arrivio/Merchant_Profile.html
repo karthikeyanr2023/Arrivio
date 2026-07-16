@@ -132,6 +132,33 @@
       transition: border-color 0.25s ease, box-shadow 0.2s ease;
     }
 
+    .field.invalid {
+      position: relative;
+    }
+
+    .field.invalid input,
+    .field.invalid select,
+    .field.invalid textarea {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+
+    .field.invalid label {
+      color: #9b1c1c;
+    }
+
+    .field.invalid::after {
+      content: '!';
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #dc2626;
+      font-weight: 800;
+      font-size: 1.1rem;
+      pointer-events: none;
+    }
+
     input:focus,
     select:focus,
     textarea:focus {
@@ -142,13 +169,16 @@
     }
 
     .actions {
-      display: grid;
+      display: flex;
       gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .actions button,
     .actions a {
-      width: 100%;
+      flex: 1 1 220px;
+      min-width: 140px;
       padding: 16px 18px;
       border-radius: 18px;
       font-weight: 700;
@@ -338,7 +368,7 @@
         </div>
 
         <div class="actions">
-          <button type="submit">Save Merchant Profile</button>
+          <button type="submit">Add business details</button>
           <a href="Home_Login.html">Back to login</a>
         </div>
       </form>
@@ -422,6 +452,64 @@
         message.style.borderColor = isError ? 'rgba(219, 68, 55, 0.18)' : 'rgba(29, 118, 255, 0.18)';
       }
 
+      function clearValidationState() {
+        const invalidRows = document.querySelectorAll('.field.invalid');
+        invalidRows.forEach(row => row.classList.remove('invalid'));
+      }
+
+      function markInvalidField(fieldElement, messageText) {
+        clearValidationState();
+        const fieldWrapper = fieldElement.closest('.field');
+        if (fieldWrapper) {
+          fieldWrapper.classList.add('invalid');
+        }
+        showMessage(messageText, true);
+        fieldElement.focus();
+      }
+
+      function validateMerchantFields() {
+        clearValidationState();
+        const fullNameElement = document.getElementById('fullName');
+        const emailElement = document.getElementById('email');
+        const countryElement = document.getElementById('country');
+        const streetElement = document.getElementById('streetAddress');
+        const cityElement = document.getElementById('city');
+        const pinElement = document.getElementById('pin');
+
+        const fullName = fullNameElement.value.trim();
+        const email = emailElement.value.trim();
+        const country = countryElement.value;
+        const streetAddress = streetElement.value.trim();
+        const city = cityElement.value.trim();
+        const pin = pinElement.value.trim();
+
+        if (!fullName) {
+          markInvalidField(fullNameElement, 'Please enter your full name before adding business details.');
+          return false;
+        }
+        if (!email || !email.endsWith('@gmail.com')) {
+          markInvalidField(emailElement, 'Please enter a valid Gmail address before adding business details.');
+          return false;
+        }
+        if (!country) {
+          markInvalidField(countryElement, 'Please select your country before adding business details.');
+          return false;
+        }
+        if (!streetAddress) {
+          markInvalidField(streetElement, 'Please enter your street address before adding business details.');
+          return false;
+        }
+        if (!city) {
+          markInvalidField(cityElement, 'Please enter your city before adding business details.');
+          return false;
+        }
+        if (!pin) {
+          markInvalidField(pinElement, 'Please enter your pin code before adding business details.');
+          return false;
+        }
+        return true;
+      }
+
       function openModal(type) {
         modalBusinessType.value = type;
         modalTitle.textContent = `Merchant details for ${type}`;
@@ -445,6 +533,10 @@
           const selected = businessType.value;
           if (!selected) {
             closeModal();
+            return;
+          }
+          if (!validateMerchantFields()) {
+            businessType.value = '';
             return;
           }
           selectedBusinessType = selected;
