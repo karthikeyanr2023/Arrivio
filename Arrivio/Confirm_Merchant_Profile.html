@@ -156,13 +156,16 @@
     }
 
     .actions {
-      display: grid;
+      display: flex;
       gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .actions button,
     .actions a {
-      width: 100%;
+      flex: 1 1 160px;
+      min-width: 140px;
       padding: 16px 18px;
       border-radius: 18px;
       font-weight: 700;
@@ -178,6 +181,10 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
+    .actions button.edit-action {
+      background: linear-gradient(135deg, #0c6b4d, #3fb07d);
+    }
+
     .actions button:hover {
       transform: translateY(-1px);
       box-shadow: 0 18px 32px rgba(14, 86, 170, 0.18);
@@ -185,8 +192,15 @@
 
     .actions a {
       color: var(--primary);
-      background: transparent;
+      background: #fff;
+      border: 1px solid rgba(31, 79, 123, 0.15);
       text-decoration: none;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .actions a:hover {
+      background: rgba(91, 157, 255, 0.08);
+      border-color: rgba(31, 79, 123, 0.22);
     }
 
     .hidden {
@@ -277,9 +291,9 @@
           <strong id="displayBusinessPOIs"></strong>
         </div>
         <div class="actions">
-          <button type="button" id="editButton">Edit merchant profile</button>
-          <button type="button" id="confirmButton">Confirm merchant profile</button>
-          <a href="Merchant_Profile.html">Back to merchant profile</a>
+          <button type="button" id="editButton" class="edit-action">Edit</button>
+          <button type="button" id="confirmButton">Confirm</button>
+          <a href="Merchant_Profile.html">Back</a>
         </div>
       </div>
 
