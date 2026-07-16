@@ -534,7 +534,7 @@
             showMessage('Please enter your pin code.', true);
             return;
           }
-          if (!businessTypeValue) {
+              if (!businessTypeValue) {
             showMessage('Please select a business type.', true);
             return;
           }
@@ -543,9 +543,22 @@
             return;
           }
 
-          showMessage('Merchant profile saved successfully.', false);
+          const merchantProfileData = {
+            fullName,
+            email,
+            country,
+            address: {
+              street: streetAddress,
+              city: city,
+              zipcode: pin,
+            },
+            businessDetails,
+          };
+          localStorage.setItem('pendingProfile', JSON.stringify(merchantProfileData));
+
+          showMessage('Merchant profile saved successfully. Redirecting to confirmation...', false);
           setTimeout(() => {
-            window.location.href = 'Home_Login.html';
+            window.location.href = `Confirm_Profile.html?email=${encodeURIComponent(email)}&type=merchant`;
           }, 1200);
         });
       }

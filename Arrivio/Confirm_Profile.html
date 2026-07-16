@@ -268,6 +268,26 @@
           <strong id="displayZipcode"></strong>
         </div>
         <div class="profile-row">
+          <span>Business title</span>
+          <strong id="displayBusinessTitle"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Business type</span>
+          <strong id="displayBusinessType"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Business option</span>
+          <strong id="displayBusinessOption"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Notes</span>
+          <strong id="displayBusinessNotes"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Nearby POIs</span>
+          <strong id="displayBusinessPOIs"></strong>
+        </div>
+        <div class="profile-row">
           <span>Preferences</span>
           <ul id="displayPreferences" class="prefs-list"></ul>
         </div>
@@ -316,6 +336,34 @@
           <input type="text" id="zipcodeInput" name="zipcode" placeholder="Zip code" />
         </div>
         <div class="form-row">
+          <label for="businessTitleInput">Business title</label>
+          <input type="text" id="businessTitleInput" name="businessTitle" placeholder="Enter business title" />
+        </div>
+        <div class="form-row">
+          <label for="businessTypeInput">Business type</label>
+          <select id="businessTypeInput" name="businessType">
+            <option value="">Select business type</option>
+            <option value="Food">Food</option>
+            <option value="Events">Events</option>
+            <option value="Sport Events">Sport Events</option>
+            <option value="Deals">Deals</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="businessOptionInput">Business option</label>
+          <select id="businessOptionInput" name="businessOption">
+            <option value="">Select business option</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="businessNotesInput">Notes</label>
+          <textarea id="businessNotesInput" rows="3" placeholder="Add notes about this business"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Nearby POIs</label>
+          <div id="businessPOIsContainer" class="prefs-list"></div>
+        </div>
+        <div class="form-row">
           <label>Preferences</label>
           <div id="editPreferences" class="prefs-list"></div>
         </div>
@@ -345,6 +393,11 @@
     const displayCity = document.getElementById('displayCity');
     const displayZipcode = document.getElementById('displayZipcode');
     const displayPreferences = document.getElementById('displayPreferences');
+    const displayBusinessTitle = document.getElementById('displayBusinessTitle');
+    const displayBusinessType = document.getElementById('displayBusinessType');
+    const displayBusinessOption = document.getElementById('displayBusinessOption');
+    const displayBusinessNotes = document.getElementById('displayBusinessNotes');
+    const displayBusinessPOIs = document.getElementById('displayBusinessPOIs');
 
     const fullNameInput = document.getElementById('fullNameInput');
     const emailInput = document.getElementById('emailInput');
@@ -352,6 +405,11 @@
     const streetInput = document.getElementById('streetInput');
     const cityInput = document.getElementById('cityInput');
     const zipcodeInput = document.getElementById('zipcodeInput');
+    const businessTitleInput = document.getElementById('businessTitleInput');
+    const businessTypeInput = document.getElementById('businessTypeInput');
+    const businessOptionInput = document.getElementById('businessOptionInput');
+    const businessNotesInput = document.getElementById('businessNotesInput');
+    const businessPOIsContainer = document.getElementById('businessPOIsContainer');
     const editPreferences = document.getElementById('editPreferences');
 
     const editButton = document.getElementById('editButton');
@@ -416,6 +474,48 @@
       });
     }
 
+    function renderPOIs(pois, container) {
+      container.innerHTML = '';
+      if (!pois || !pois.length) {
+        container.textContent = 'None';
+        return;
+      }
+      pois.forEach(poi => {
+        const li = document.createElement('li');
+        li.textContent = poi;
+        container.appendChild(li);
+      });
+    }
+
+    function renderBusinessOptions(type, selectedValue = '') {
+      const options = {
+        Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
+        Events: ['Music Festivals', 'Dance Events', 'Farmers Market', 'Art Fairs', 'Theater Shows'],
+        'Sport Events': ['Cycling', 'Hiking', 'Running', 'Yoga Retreats', 'Beach Volleyball'],
+        Deals: ['Starbucks Deals', 'Flower Shop Deals', 'Whole Foods Deals', 'Costco Deals', 'Local Boutique Deals', 'Parking Deals'],
+      }[type] || [];
+      businessOptionInput.innerHTML = '<option value="">Select business option</option>' +
+        options.map(value => `<option value="${value}"${value === selectedValue ? ' selected' : ''}>${value}</option>`).join('');
+    }
+
+    function renderPOIInputs(pois = []) {
+      businessPOIsContainer.innerHTML = '';
+      const inputs = pois.slice(0, 3);
+      while (inputs.length < 3) inputs.push('');
+      inputs.forEach((value, index) => {
+        const item = document.createElement('div');
+        item.style.display = 'grid';
+        item.style.gap = '8px';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'merchant-poi-input';
+        input.placeholder = `POI ${index + 1}`;
+        input.value = value;
+        item.appendChild(input);
+        businessPOIsContainer.appendChild(item);
+      });
+    }
+
     function renderCheckboxes(selected = []) {
       editPreferences.innerHTML = '';
       preferencesOptions.forEach(value => {
@@ -458,6 +558,24 @@
       streetInput.value = (profile.address && profile.address.street) || '';
       cityInput.value = (profile.address && profile.address.city) || '';
       zipcodeInput.value = (profile.address && profile.address.zipcode) || '';
+      businessTitleInput.value = (profile.businessDetails && profile.businessDetails.title) || '';
+      businessTypeInput.value = (profile.businessDetails && profile.businessDetails.type) || '';
+      renderBusinessOptions(businessTypeInput.value, profile.businessDetails?.option || '');
+      businessNotesInput.value = (profile.businessDetails && profile.businessDetails.notes) || '';
+      renderPOIInputs(profile.businessDetails?.pois || []);
+      if (profile.businessDetails?.type) {
+        displayBusinessType.textContent = profile.businessDetails.type;
+        displayBusinessOption.textContent = profile.businessDetails.option || '';
+        displayBusinessTitle.textContent = profile.businessDetails.title || '';
+        displayBusinessNotes.textContent = profile.businessDetails.notes || '';
+        renderPOIs(profile.businessDetails.pois || [], displayBusinessPOIs);
+      } else {
+        displayBusinessType.textContent = '';
+        displayBusinessOption.textContent = '';
+        displayBusinessTitle.textContent = '';
+        displayBusinessNotes.textContent = '';
+        displayBusinessPOIs.textContent = 'None';
+      }
       renderCheckboxes(profile.preferences || []);
     }
 
@@ -484,6 +602,7 @@
         email: profile.email,
         country: profile.country,
         address: profile.address || {},
+        businessDetails: profile.businessDetails || {},
         preferences: profile.preferences,
       };
 
@@ -524,6 +643,7 @@
     });
 
     confirmButton.addEventListener('click', () => {
+      localStorage.removeItem('pendingProfile');
       showToast('Your profile saved successfully. Redirecting to login...');
       setTimeout(() => {
         window.location.href = 'Home_Login.html';
@@ -545,6 +665,13 @@
           city: cityInput.value.trim(),
           zipcode: zipcodeInput.value.trim(),
         },
+        businessDetails: {
+          title: businessTitleInput.value.trim(),
+          type: businessTypeInput.value,
+          option: businessOptionInput.value,
+          notes: businessNotesInput.value.trim(),
+          pois: Array.from(document.querySelectorAll('.merchant-poi-input')).map(input => input.value.trim()).filter(Boolean),
+        },
         preferences: updatedPreferences,
       };
 
@@ -558,10 +685,7 @@
         return;
       }
 
-      if (!updatedProfile.preferences.length) {
-        showMessage('Please select at least one preference.', true);
-        return;
-      }
+      // Preferences are optional for merchant profile edits.
 
       try {
         setLoading(true);
@@ -599,6 +723,15 @@
         populateProfile(profile);
         profileSummary.classList.remove('hidden');
       } catch (error) {
+        const stored = localStorage.getItem('pendingProfile');
+        if (stored) {
+          const profile = JSON.parse(stored);
+          if (profile.email === email) {
+            populateProfile(profile);
+            profileSummary.classList.remove('hidden');
+            return;
+          }
+        }
         showMessage('Unable to load profile from DynamoDB. Please return to signup.', true);
       }
     }
