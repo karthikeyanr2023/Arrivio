@@ -404,6 +404,14 @@
           <p class="form-note">Add up to 3 nearby points of interest.</p>
         </div>
         <div class="field">
+          <label for="businessLicense">Business license number</label>
+          <input type="text" id="businessLicense" placeholder="Enter business license number" />
+        </div>
+        <div class="field">
+          <label for="businessTaxId">Tax ID number</label>
+          <input type="text" id="businessTaxId" placeholder="Enter tax / GST / VAT ID" />
+        </div>
+        <div class="field">
           <label for="modalNotes">Notes</label>
           <textarea id="modalNotes" rows="3" placeholder="Add notes about this business"></textarea>
         </div>
@@ -597,6 +605,8 @@
           const city = document.getElementById('city').value.trim();
           const pin = document.getElementById('pin').value.trim();
           const businessTypeValue = businessType.value;
+          const licenseNumber = document.getElementById('businessLicense') ? document.getElementById('businessLicense').value.trim() : '';
+          const taxIdNumber = document.getElementById('businessTaxId') ? document.getElementById('businessTaxId').value.trim() : '';
 
           if (!title || !type || !option) {
             showMessage('Please fill in all merchant business details in the pop-up.', true);
@@ -644,7 +654,7 @@
             return;
           }
 
-          businessDetails = { title, type, option, notes, pois };
+          businessDetails = { title, type, option, notes, pois, licenseNumber, taxIdNumber };
           const merchantProfileData = {
             fullName,
             email,

@@ -290,6 +290,14 @@
           <span>Nearby POIs</span>
           <strong id="displayBusinessPOIs"></strong>
         </div>
+        <div class="profile-row">
+          <span>Business license number</span>
+          <strong id="displayBusinessLicense"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Tax ID number</span>
+          <strong id="displayBusinessTaxId"></strong>
+        </div>
         <div class="actions">
           <button type="button" id="editButton" class="edit-action">Edit</button>
           <button type="button" id="confirmButton">Confirm</button>
@@ -354,6 +362,14 @@
           </select>
         </div>
         <div class="form-row">
+          <label for="businessLicenseInput">Business license number</label>
+          <input type="text" id="businessLicenseInput" name="businessLicense" placeholder="Enter business license number" />
+        </div>
+        <div class="form-row">
+          <label for="businessTaxIdInput">Tax ID number</label>
+          <input type="text" id="businessTaxIdInput" name="businessTaxId" placeholder="Enter tax / GST / VAT ID" />
+        </div>
+        <div class="form-row">
           <label for="businessNotesInput">Notes</label>
           <textarea id="businessNotesInput" rows="3" placeholder="Add notes about this business"></textarea>
         </div>
@@ -388,6 +404,8 @@
     const displayBusinessOption = document.getElementById('displayBusinessOption');
     const displayBusinessNotes = document.getElementById('displayBusinessNotes');
     const displayBusinessPOIs = document.getElementById('displayBusinessPOIs');
+    const displayBusinessLicense = document.getElementById('displayBusinessLicense');
+    const displayBusinessTaxId = document.getElementById('displayBusinessTaxId');
 
     const fullNameInput = document.getElementById('fullNameInput');
     const emailInput = document.getElementById('emailInput');
@@ -400,6 +418,8 @@
     const businessOptionInput = document.getElementById('businessOptionInput');
     const businessNotesInput = document.getElementById('businessNotesInput');
     const businessPOIsContainer = document.getElementById('businessPOIsContainer');
+    const businessLicenseInput = document.getElementById('businessLicenseInput');
+    const businessTaxIdInput = document.getElementById('businessTaxIdInput');
     const editButton = document.getElementById('editButton');
     const confirmButton = document.getElementById('confirmButton');
     const cancelEdit = document.getElementById('cancelEdit');
@@ -481,6 +501,8 @@
       displayBusinessOption.textContent = (profile.businessDetails && profile.businessDetails.option) || '';
       displayBusinessNotes.textContent = (profile.businessDetails && profile.businessDetails.notes) || '';
       renderPOIs(profile.businessDetails?.pois || []);
+      displayBusinessLicense.textContent = (profile.businessDetails && profile.businessDetails.licenseNumber) || '';
+      displayBusinessTaxId.textContent = (profile.businessDetails && profile.businessDetails.taxIdNumber) || '';
 
       fullNameInput.value = profile.fullName || '';
       emailInput.value = profile.email || '';
@@ -493,6 +515,8 @@
       renderBusinessOptions(businessTypeInput.value, profile.businessDetails?.option || '');
       businessNotesInput.value = (profile.businessDetails && profile.businessDetails.notes) || '';
       renderPOIInputs(profile.businessDetails?.pois || []);
+      businessLicenseInput.value = (profile.businessDetails && profile.businessDetails.licenseNumber) || '';
+      businessTaxIdInput.value = (profile.businessDetails && profile.businessDetails.taxIdNumber) || '';
     }
 
     function loadPendingProfile(email) {
@@ -549,6 +573,8 @@
           option: businessOptionInput.value,
           notes: businessNotesInput.value.trim(),
           pois: Array.from(document.querySelectorAll('.merchant-poi-input')).map(input => input.value.trim()).filter(Boolean),
+          licenseNumber: businessLicenseInput.value.trim(),
+          taxIdNumber: businessTaxIdInput.value.trim(),
         },
       };
 
