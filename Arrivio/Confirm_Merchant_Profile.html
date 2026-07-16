@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirm Merchant Profile</title>
+  <style>
+    :root {
+      --primary: #1f4f7b;
+      --accent: #5b9dff;
+      --surface: #ffffff;
+      --surface-soft: #f3f8ff;
+      --text: #102a44;
+      --muted: #5b6e83;
+      --border: rgba(31, 79, 123, 0.12);
+      --shadow: 0 24px 55px rgba(17, 58, 95, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #eff6ff 0%, #f9fbfe 45%, #f7f9fd 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .page-shell {
+      width: min(720px, 100%);
+      background: var(--surface);
+      border-radius: 32px;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-panel {
+      padding: 40px 36px 28px;
+      background: linear-gradient(135deg, rgba(91, 157, 255, 0.16), rgba(31, 79, 123, 0.16));
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-panel h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3.1vw, 2.7rem);
+      letter-spacing: -0.04em;
+    }
+
+    .hero-panel p {
+      margin: 0;
+      max-width: 660px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .content {
+      padding: 32px 36px 36px;
+      display: grid;
+      gap: 26px;
+    }
+
+    .message {
+      padding: 14px 18px;
+      border-radius: 18px;
+      display: none;
+      border: 1px solid rgba(28, 107, 171, 0.14);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .profile-card,
+    .edit-form {
+      display: grid;
+      gap: 18px;
+      background: #f8fbff;
+      border-radius: 24px;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      padding: 24px;
+    }
+
+    .profile-row,
+    .form-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .profile-card .profile-row {
+      grid-template-columns: 140px 1fr;
+      align-items: center;
+    }
+
+    .profile-row span {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .profile-row strong {
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .prefs-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .prefs-list li {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px 14px;
+      border: 1px solid rgba(31, 79, 123, 0.06);
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+
+    label {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.25s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 6px rgba(91, 157, 255, 0.14);
+      background: #fff;
+    }
+
+    .actions {
+      display: grid;
+      gap: 14px;
+    }
+
+    .actions button,
+    .actions a {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 18px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+    }
+
+    .actions button {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .actions button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 32px rgba(14, 86, 170, 0.18);
+    }
+
+    .actions a {
+      color: var(--primary);
+      background: transparent;
+      text-decoration: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      background: #0a3f61;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 999px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 10;
+      font-size: 0.95rem;
+    }
+
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 720px) {
+      .page-shell {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="hero-panel">
+      <h1>Confirm Merchant Profile</h1>
+      <p>Review your merchant details before final confirmation. You can edit the profile and save updates.</p>
+    </section>
+
+    <section class="content">
+      <div class="message" id="message"></div>
+
+      <div id="profileSummary" class="profile-card hidden">
+        <div class="profile-row">
+          <span>Full name</span>
+          <strong id="displayFullName"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Email</span>
+          <strong id="displayEmail"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Country</span>
+          <strong id="displayCountry"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Street address</span>
+          <strong id="displayStreet"></strong>
+        </div>
+        <div class="profile-row">
+          <span>City</span>
+          <strong id="displayCity"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Pin code</span>
+          <strong id="displayZipcode"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Business title</span>
+          <strong id="displayBusinessTitle"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Business type</span>
+          <strong id="displayBusinessType"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Business option</span>
+          <strong id="displayBusinessOption"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Notes</span>
+          <strong id="displayBusinessNotes"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Nearby POIs</span>
+          <strong id="displayBusinessPOIs"></strong>
+        </div>
+        <div class="actions">
+          <button type="button" id="editButton">Edit merchant profile</button>
+          <button type="button" id="confirmButton">Confirm merchant profile</button>
+          <a href="Merchant_Profile.html">Back to merchant profile</a>
+        </div>
+      </div>
+
+      <form id="editForm" class="edit-form hidden">
+        <div class="form-row">
+          <label for="fullNameInput">Full name</label>
+          <input type="text" id="fullNameInput" name="fullName" />
+        </div>
+        <div class="form-row">
+          <label for="emailInput">Email</label>
+          <input type="email" id="emailInput" name="email" disabled />
+        </div>
+        <div class="form-row">
+          <label for="countryInput">Country</label>
+          <select id="countryInput" name="country">
+            <option value="">Select country</option>
+            <option>United States</option>
+            <option>Canada</option>
+            <option>United Kingdom</option>
+            <option>Australia</option>
+            <option>India</option>
+            <option>Germany</option>
+            <option>France</option>
+            <option>Japan</option>
+            <option>Singapore</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="streetInput">Street address</label>
+          <input type="text" id="streetInput" name="streetAddress" placeholder="123 Main St" />
+        </div>
+        <div class="form-row">
+          <label for="cityInput">City</label>
+          <input type="text" id="cityInput" name="city" placeholder="City" />
+        </div>
+        <div class="form-row">
+          <label for="zipcodeInput">Pin code</label>
+          <input type="text" id="zipcodeInput" name="zipcode" placeholder="Pin code" />
+        </div>
+        <div class="form-row">
+          <label for="businessTitleInput">Business title</label>
+          <input type="text" id="businessTitleInput" name="businessTitle" placeholder="Enter business title" />
+        </div>
+        <div class="form-row">
+          <label for="businessTypeInput">Business type</label>
+          <select id="businessTypeInput" name="businessType">
+            <option value="">Select business type</option>
+            <option value="Food">Food</option>
+            <option value="Events">Events</option>
+            <option value="Sport Events">Sport Events</option>
+            <option value="Deals">Deals</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="businessOptionInput">Business option</label>
+          <select id="businessOptionInput" name="businessOption">
+            <option value="">Select business option</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="businessNotesInput">Notes</label>
+          <textarea id="businessNotesInput" rows="3" placeholder="Add notes about this business"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Nearby POIs</label>
+          <div id="businessPOIsContainer" class="prefs-list"></div>
+        </div>
+        <div class="actions">
+          <button type="submit">Save changes</button>
+          <button type="button" id="cancelEdit">Cancel</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const message = document.getElementById('message');
+    const profileSummary = document.getElementById('profileSummary');
+    const editForm = document.getElementById('editForm');
+    const toast = document.getElementById('toast');
+
+    const displayFullName = document.getElementById('displayFullName');
+    const displayEmail = document.getElementById('displayEmail');
+    const displayCountry = document.getElementById('displayCountry');
+    const displayStreet = document.getElementById('displayStreet');
+    const displayCity = document.getElementById('displayCity');
+    const displayZipcode = document.getElementById('displayZipcode');
+    const displayBusinessTitle = document.getElementById('displayBusinessTitle');
+    const displayBusinessType = document.getElementById('displayBusinessType');
+    const displayBusinessOption = document.getElementById('displayBusinessOption');
+    const displayBusinessNotes = document.getElementById('displayBusinessNotes');
+    const displayBusinessPOIs = document.getElementById('displayBusinessPOIs');
+
+    const fullNameInput = document.getElementById('fullNameInput');
+    const emailInput = document.getElementById('emailInput');
+    const countryInput = document.getElementById('countryInput');
+    const streetInput = document.getElementById('streetInput');
+    const cityInput = document.getElementById('cityInput');
+    const zipcodeInput = document.getElementById('zipcodeInput');
+    const businessTitleInput = document.getElementById('businessTitleInput');
+    const businessTypeInput = document.getElementById('businessTypeInput');
+    const businessOptionInput = document.getElementById('businessOptionInput');
+    const businessNotesInput = document.getElementById('businessNotesInput');
+    const businessPOIsContainer = document.getElementById('businessPOIsContainer');
+    const editButton = document.getElementById('editButton');
+    const confirmButton = document.getElementById('confirmButton');
+    const cancelEdit = document.getElementById('cancelEdit');
+
+    const businessOptions = {
+      Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
+      Events: ['Music Festivals', 'Dance Events', 'Farmers Market', 'Art Fairs', 'Theater Shows'],
+      'Sport Events': ['Cycling', 'Hiking', 'Running', 'Yoga Retreats', 'Beach Volleyball'],
+      Deals: ['Starbucks Deals', 'Flower Shop Deals', 'Whole Foods Deals', 'Costco Deals', 'Local Boutique Deals', 'Parking Deals'],
+    };
+
+    let currentProfile = null;
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    function showMessage(text, isError = false) {
+      message.textContent = text;
+      message.style.display = 'block';
+      message.style.background = isError ? '#fdeaea' : '#e8f7ff';
+      message.style.color = isError ? '#9b1f1f' : '#0a3f61';
+      message.style.borderColor = isError ? 'rgba(219, 68, 55, 0.18)' : 'rgba(29, 118, 255, 0.18)';
+    }
+
+    function hideMessage() {
+      message.style.display = 'none';
+    }
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function renderPOIs(pois) {
+      if (!pois || !pois.length) {
+        displayBusinessPOIs.textContent = 'None';
+        return;
+      }
+      displayBusinessPOIs.textContent = pois.join(', ');
+    }
+
+    function renderBusinessOptions(type, selectedValue = '') {
+      const options = businessOptions[type] || [];
+      businessOptionInput.innerHTML = '<option value="">Select business option</option>' +
+        options.map(value => `<option value="${value}"${value === selectedValue ? ' selected' : ''}>${value}</option>`).join('');
+    }
+
+    function renderPOIInputs(pois = []) {
+      businessPOIsContainer.innerHTML = '';
+      const inputs = pois.slice(0, 3);
+      while (inputs.length < 3) inputs.push('');
+      inputs.forEach((value, index) => {
+        const item = document.createElement('div');
+        item.style.display = 'grid';
+        item.style.gap = '8px';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'merchant-poi-input';
+        input.placeholder = `POI ${index + 1}`;
+        input.value = value;
+        item.appendChild(input);
+        businessPOIsContainer.appendChild(item);
+      });
+    }
+
+    function populateProfile(profile) {
+      currentProfile = profile;
+      displayFullName.textContent = profile.fullName || '';
+      displayEmail.textContent = profile.email || '';
+      displayCountry.textContent = profile.country || '';
+      displayStreet.textContent = (profile.address && profile.address.street) || '';
+      displayCity.textContent = (profile.address && profile.address.city) || '';
+      displayZipcode.textContent = (profile.address && profile.address.zipcode) || '';
+      displayBusinessTitle.textContent = (profile.businessDetails && profile.businessDetails.title) || '';
+      displayBusinessType.textContent = (profile.businessDetails && profile.businessDetails.type) || '';
+      displayBusinessOption.textContent = (profile.businessDetails && profile.businessDetails.option) || '';
+      displayBusinessNotes.textContent = (profile.businessDetails && profile.businessDetails.notes) || '';
+      renderPOIs(profile.businessDetails?.pois || []);
+
+      fullNameInput.value = profile.fullName || '';
+      emailInput.value = profile.email || '';
+      countryInput.value = profile.country || '';
+      streetInput.value = (profile.address && profile.address.street) || '';
+      cityInput.value = (profile.address && profile.address.city) || '';
+      zipcodeInput.value = (profile.address && profile.address.zipcode) || '';
+      businessTitleInput.value = (profile.businessDetails && profile.businessDetails.title) || '';
+      businessTypeInput.value = (profile.businessDetails && profile.businessDetails.type) || '';
+      renderBusinessOptions(businessTypeInput.value, profile.businessDetails?.option || '');
+      businessNotesInput.value = (profile.businessDetails && profile.businessDetails.notes) || '';
+      renderPOIInputs(profile.businessDetails?.pois || []);
+    }
+
+    function loadPendingProfile(email) {
+      const stored = localStorage.getItem('pendingProfile');
+      if (!stored) return null;
+      const profile = JSON.parse(stored);
+      return profile.email === email ? profile : null;
+    }
+
+    function showSummary() {
+      profileSummary.classList.remove('hidden');
+      editForm.classList.add('hidden');
+      hideMessage();
+    }
+
+    function showEditor() {
+      profileSummary.classList.add('hidden');
+      editForm.classList.remove('hidden');
+      hideMessage();
+    }
+
+    editButton.addEventListener('click', showEditor);
+    cancelEdit.addEventListener('click', () => {
+      populateProfile(currentProfile);
+      showSummary();
+    });
+
+    confirmButton.addEventListener('click', () => {
+      localStorage.removeItem('pendingProfile');
+      showToast('Your merchant profile saved successfully. Redirecting to login...');
+      setTimeout(() => {
+        window.location.href = 'Home_Login.html';
+      }, 1400);
+    });
+
+    businessTypeInput.addEventListener('change', () => {
+      renderBusinessOptions(businessTypeInput.value);
+    });
+
+    editForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const updatedProfile = {
+        fullName: fullNameInput.value.trim(),
+        email: emailInput.value.trim(),
+        country: countryInput.value,
+        address: {
+          street: streetInput.value.trim(),
+          city: cityInput.value.trim(),
+          zipcode: zipcodeInput.value.trim(),
+        },
+        businessDetails: {
+          title: businessTitleInput.value.trim(),
+          type: businessTypeInput.value,
+          option: businessOptionInput.value,
+          notes: businessNotesInput.value.trim(),
+          pois: Array.from(document.querySelectorAll('.merchant-poi-input')).map(input => input.value.trim()).filter(Boolean),
+        },
+      };
+
+      if (!updatedProfile.fullName) {
+        showMessage('Please enter your full name.', true);
+        return;
+      }
+      if (!updatedProfile.country) {
+        showMessage('Please select your country.', true);
+        return;
+      }
+      if (!updatedProfile.address.street) {
+        showMessage('Please enter your street address.', true);
+        return;
+      }
+      if (!updatedProfile.address.city) {
+        showMessage('Please enter your city.', true);
+        return;
+      }
+      if (!updatedProfile.address.zipcode) {
+        showMessage('Please enter your pin code.', true);
+        return;
+      }
+      if (!updatedProfile.businessDetails.title) {
+        showMessage('Please enter your business title.', true);
+        return;
+      }
+      if (!updatedProfile.businessDetails.type) {
+        showMessage('Please select a business type.', true);
+        return;
+      }
+      if (!updatedProfile.businessDetails.option) {
+        showMessage('Please select a business option.', true);
+        return;
+      }
+
+      currentProfile = updatedProfile;
+      localStorage.setItem('pendingProfile', JSON.stringify(currentProfile));
+      populateProfile(currentProfile);
+      showSummary();
+      showToast('Merchant profile updated successfully.');
+    });
+
+    function init() {
+      const email = getQueryParam('email');
+      if (!email) {
+        showMessage('Missing email address. Please return to merchant profile.', true);
+        return;
+      }
+
+      const profile = loadPendingProfile(email);
+      if (!profile) {
+        showMessage('No merchant profile found. Please complete the merchant profile page first.', true);
+        return;
+      }
+
+      populateProfile(profile);
+      profileSummary.classList.remove('hidden');
+    }
+
+    init();
+  </script>
+</body>
+</html>
