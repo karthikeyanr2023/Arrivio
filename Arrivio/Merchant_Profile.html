@@ -235,11 +235,14 @@
     }
 
     .modal {
-      width: min(600px, 100%);
+      width: min(900px, 96vw);
+      max-height: 82vh;
       background: var(--surface);
-      border-radius: 28px;
+      border-radius: 20px;
       box-shadow: 0 35px 80px rgba(15, 43, 89, 0.2);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .modal-header {
@@ -253,9 +256,16 @@
     }
 
     .modal-body {
-      padding: 24px;
+      padding: 18px 20px;
       display: grid;
-      gap: 18px;
+      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      overflow-y: auto;
+      max-height: calc(82vh - 140px);
+    }
+
+    .modal-body .full-width {
+      grid-column: 1 / -1;
     }
 
     .modal-actions {
@@ -395,7 +405,7 @@
             <option value="">Select an option for this business type</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field full-width">
           <label>POI nearby</label>
           <div class="poi-list">
             <div class="poi-item"><input type="text" class="poi-input" placeholder="Enter nearby POI" /></div>
@@ -411,7 +421,7 @@
           <label for="businessTaxId">Tax ID number</label>
           <input type="text" id="businessTaxId" placeholder="Enter tax / GST / VAT ID" />
         </div>
-        <div class="field">
+        <div class="field full-width">
           <label for="modalNotes">Notes</label>
           <textarea id="modalNotes" rows="3" placeholder="Add notes about this business"></textarea>
         </div>
