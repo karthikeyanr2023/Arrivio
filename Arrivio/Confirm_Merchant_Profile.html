@@ -424,6 +424,8 @@
     const confirmButton = document.getElementById('confirmButton');
     const cancelEdit = document.getElementById('cancelEdit');
 
+    const MERCHANT_API_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchant-profile';
+
     const businessOptions = {
       Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
       Events: ['Music Festivals', 'Dance Events', 'Farmers Market', 'Art Fairs', 'Theater Shows'],
@@ -544,12 +546,38 @@
       showSummary();
     });
 
+    async function submitMerchantProfile(profile) {
+      try {
+        const response = await fetch(MERCHANT_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            profileType: 'merchant',
+            ...profile,
+          }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to save merchant profile');
+        }
+
+        localStorage.removeItem('pendingProfile');
+        showToast('Merchant profile saved successfully. Redirecting to login...');
+        setTimeout(() => {
+          window.location.href = 'Home_Login.html';
+        }, 1400);
+      } catch (error) {
+        showMessage(error.message || 'Unable to save merchant profile. Please try again.', true);
+      }
+    }
+
     confirmButton.addEventListener('click', () => {
-      localStorage.removeItem('pendingProfile');
-      showToast('Your merchant profile saved successfully. Redirecting to login...');
-      setTimeout(() => {
-        window.location.href = 'Home_Login.html';
-      }, 1400);
+      if (!currentProfile) {
+        showMessage('No merchant profile found to submit.', true);
+        return;
+      }
+      submitMerchantProfile(currentProfile);
     });
 
     businessTypeInput.addEventListener('change', () => {
