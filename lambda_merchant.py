@@ -101,8 +101,9 @@ def save_merchant(event):
         merchant_table.put_item(Item=item)
         return response(200, "Merchant profile saved successfully.", item)
     except Exception as exc:
-        print("DynamoDB put failed (merchant):", exc)
-        return response(500, "Failed to save merchant profile")
+        error_message = str(exc)
+        print("DynamoDB put failed (merchant):", error_message)
+        return response(500, f"Failed to save merchant profile: {error_message}")
 
 
 def response(status_code, message, data=None):
