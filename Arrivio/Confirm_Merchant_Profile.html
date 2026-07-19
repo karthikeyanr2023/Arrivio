@@ -452,6 +452,30 @@
       message.style.display = 'none';
     }
 
+    function getSavedProfiles(key) {
+      const stored = localStorage.getItem(key);
+      if (!stored) return [];
+      try {
+        return JSON.parse(stored) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function storeMerchantProfile(profile) {
+      if (!profile || !profile.email) return;
+      const key = 'savedArrivioMerchants';
+      const list = getSavedProfiles(key);
+      const index = list.findIndex(item => item.email === profile.email);
+      const next = { ...profile };
+      if (index >= 0) {
+        list[index] = next;
+      } else {
+        list.push(next);
+      }
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
     function showToast(text) {
       toast.textContent = text;
       toast.classList.add('show');
@@ -547,6 +571,9 @@
     });
 
     async function submitMerchantProfile(profile) {
+      confirmButton.disabled = true;
+      confirmButton.textContent = 'Saving...';
+      console.log('Sending merchant profile to API:', MERCHANT_API_URL, profile);
       try {
         const response = await fetch(MERCHANT_API_URL, {
           method: 'POST',
@@ -558,17 +585,24 @@
         });
 
         const result = await response.json();
+        console.log('Merchant profile API response:', response.status, result);
         if (!response.ok) {
-          throw new Error(result.message || 'Failed to save merchant profile');
+          const message = result.message || result.error || `Failed to save merchant profile (${response.status})`;
+          throw new Error(message);
         }
 
+        storeMerchantProfile(profile);
         localStorage.removeItem('pendingProfile');
         showToast('Merchant profile saved successfully. Redirecting to login...');
         setTimeout(() => {
           window.location.href = 'Home_Login.html';
         }, 1400);
       } catch (error) {
+        console.error('Merchant profile submit failed:', error);
         showMessage(error.message || 'Unable to save merchant profile. Please try again.', true);
+      } finally {
+        confirmButton.disabled = false;
+        confirmButton.textContent = 'Confirm';
       }
     }
 

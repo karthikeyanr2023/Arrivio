@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arrivio Dashboard</title>
+  <style>
+    :root {
+      --primary: #1f4f7b;
+      --accent: #5b9dff;
+      --surface: #ffffff;
+      --surface-soft: #f3f8ff;
+      --text: #102a44;
+      --muted: #5b6e83;
+      --border: rgba(31, 79, 123, 0.12);
+      --shadow: 0 24px 55px rgba(17, 58, 95, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(180deg, #eef6ff 0%, #f8fbff 48%, #f4f8ff 100%);
+      color: var(--text);
+    }
+
+    .page-shell {
+      width: min(1040px, 100%);
+      margin: 0 auto;
+      padding: 28px 24px 40px;
+    }
+
+    .hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 { margin: 0; font-size: clamp(2rem, 3vw, 2.6rem); }
+    .hero p { margin: 12px 0 0; color: var(--muted); max-width: 680px; line-height: 1.6; }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .tab {
+      border-radius: 18px;
+      padding: 18px 20px;
+      border: 1px solid rgba(31, 79, 123, 0.12);
+      background: #f8fbff;
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, rgba(91, 157, 255, 0.18), #fff);
+      border-color: rgba(91, 157, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .tab strong { display: block; font-size: 1rem; margin-bottom: 4px; }
+    .tab span { display: block; color: var(--muted); font-size: 0.95rem; }
+
+    .list-panel {
+      display: grid;
+      gap: 18px;
+    }
+
+    .list-card {
+      background: var(--surface);
+      border-radius: 24px;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .list-header {
+      padding: 22px 24px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .list-header h2 { margin: 0; }
+    .list-header p { margin: 8px 0 0; color: var(--muted); line-height: 1.6; }
+
+    .item-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .item-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      padding: 18px 24px;
+      border-top: 1px solid rgba(31, 79, 123, 0.08);
+      align-items: center;
+    }
+
+    .item-card:first-child { border-top: 0; }
+    .item-meta {
+      display: grid;
+      gap: 6px;
+    }
+
+    .item-meta strong { font-size: 1rem; }
+    .item-meta span { color: var(--muted); font-size: 0.95rem; }
+
+    .empty-state {
+      display: grid;
+      gap: 10px;
+      padding: 30px 24px;
+      text-align: center;
+      color: var(--muted);
+      background: #f8fbff;
+      border-radius: 0 0 24px 24px;
+      border-top: 1px dashed rgba(31, 79, 123, 0.14);
+    }
+
+    .empty-state strong {
+      display: block;
+      font-size: 1.05rem;
+      color: var(--text);
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .icon-button {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(31, 79, 123, 0.12);
+      background: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .icon-button:hover { background: rgba(91, 157, 255, 0.14); transform: translateY(-1px); }
+
+    .icon-button svg { width: 20px; height: 20px; fill: var(--primary); }
+
+    .details {
+      padding: 20px 24px 24px;
+      border-top: 1px solid rgba(31, 79, 123, 0.08);
+      display: none;
+      background: #f8fbff;
+      gap: 14px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .details.show { display: grid; }
+    .details-row { display: grid; gap: 6px; }
+    .details-row span { color: var(--muted); font-size: 0.95rem; }
+    .details-row strong { font-size: 1rem; }
+
+    .back-link {
+      margin-top: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (max-width: 860px) {
+      .hero { flex-direction: column; }
+    }
+
+    @media (max-width: 720px) {
+      .page-shell { padding: 20px 16px 32px; }
+      .tabs { grid-template-columns: 1fr; }
+      .item-card { grid-template-columns: 1fr auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="hero">
+      <div>
+        <h1>Arrivio Dashboard</h1>
+        <p>Select a type to review saved profiles. Expand any row to see the full details for a user or merchant.</p>
+      </div>
+      <a class="back-link" href="Home_Login.html">← Back to Home Login</a>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-view="users">
+        <strong>Users</strong>
+        <span>View registered user profiles</span>
+      </button>
+      <button class="tab" data-view="merchants">
+        <strong>Merchants</strong>
+        <span>View merchant profiles and business details</span>
+      </button>
+    </div>
+
+    <div class="list-panel">
+      <div class="list-card" id="usersPanel">
+        <div class="list-header">
+          <div>
+            <h2>User list</h2>
+            <p>All saved users are shown here. Expand a row to see full profile details in the card below.</p>
+          </div>
+        </div>
+        <ul class="item-list" id="userList"></ul>
+      </div>
+
+      <div class="list-card hidden" id="merchantsPanel">
+        <div class="list-header">
+          <div>
+            <h2>Merchant list</h2>
+            <p>All saved merchants are shown here. Expand a row to see business details and contact information.</p>
+          </div>
+        </div>
+        <ul class="item-list" id="merchantList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const usersPanel = document.getElementById('usersPanel');
+    const merchantsPanel = document.getElementById('merchantsPanel');
+    const userList = document.getElementById('userList');
+    const merchantList = document.getElementById('merchantList');
+
+    const USERS_KEY = 'savedArrivioUsers';
+    const MERCHANTS_KEY = 'savedArrivioMerchants';
+
+    const sampleUsers = [];
+    const sampleMerchants = [];
+
+    function getSavedProfiles(key) {
+      const stored = localStorage.getItem(key);
+      if (!stored) return [];
+      try {
+        return JSON.parse(stored) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function renderList(listElement, items, type) {
+      if (!items.length) {
+        listElement.innerHTML = `
+          <li class="item-card empty-state">
+            <strong>No ${type === 'users' ? 'user' : 'merchant'} profiles saved yet</strong>
+            <span>Complete a profile from the Arrivio flow to see it listed here.</span>
+          </li>`;
+        return;
+      }
+
+      listElement.innerHTML = items.map((item, index) => createListItem(item, index, type)).join('');
+      listElement.querySelectorAll('.toggle-details').forEach(button => {
+        button.addEventListener('click', event => {
+          const card = event.currentTarget.closest('.item-card');
+          card.querySelector('.details').classList.toggle('show');
+        });
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function createListItem(item, index, type) {
+      const name = type === 'users' ? item.fullName || item.email || 'Unknown user' : item.fullName || item.businessDetails?.title || item.email || 'Unknown merchant';
+      const subtitle = type === 'users' ? item.email : item.businessDetails?.title || item.country || item.email;
+      const details = type === 'users' ? renderUserDetails(item) : renderMerchantDetails(item);
+      return `
+        <li class="item-card">
+          <div class="item-meta">
+            <strong>${escapeHtml(name)}</strong>
+            <span>${escapeHtml(subtitle)}</span>
+          </div>
+          <div class="item-actions">
+            <button class="icon-button toggle-details" type="button" aria-label="Toggle details">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="details">
+            ${details}
+          </div>
+        </li>`;
+    }
+
+    function renderUserDetails(user) {
+      return [`
+        <div class="details-row"><strong>Name</strong><span>${escapeHtml(user.fullName)}</span></div>
+        <div class="details-row"><strong>Email</strong><span>${escapeHtml(user.email)}</span></div>
+        <div class="details-row"><strong>Country</strong><span>${escapeHtml(user.country)}</span></div>
+        <div class="details-row"><strong>Street</strong><span>${escapeHtml(user.address?.street)}</span></div>
+        <div class="details-row"><strong>City</strong><span>${escapeHtml(user.address?.city)}</span></div>
+        <div class="details-row"><strong>Zip code</strong><span>${escapeHtml(user.address?.zipcode)}</span></div>
+        <div class="details-row"><strong>Preferences</strong><span>${escapeHtml((user.preferences || []).join(', ') || 'None')}</span></div>
+      `].join('');
+    }
+
+    function renderMerchantDetails(merchant) {
+      return [`
+        <div class="details-row"><strong>Merchant name</strong><span>${escapeHtml(merchant.fullName)}</span></div>
+        <div class="details-row"><strong>Email</strong><span>${escapeHtml(merchant.email)}</span></div>
+        <div class="details-row"><strong>Country</strong><span>${escapeHtml(merchant.country)}</span></div>
+        <div class="details-row"><strong>Street</strong><span>${escapeHtml(merchant.address?.street)}</span></div>
+        <div class="details-row"><strong>City</strong><span>${escapeHtml(merchant.address?.city)}</span></div>
+        <div class="details-row"><strong>Zip code</strong><span>${escapeHtml(merchant.address?.zipcode)}</span></div>
+        <div class="details-row"><strong>Business title</strong><span>${escapeHtml(merchant.businessDetails?.title)}</span></div>
+        <div class="details-row"><strong>Business type</strong><span>${escapeHtml(merchant.businessDetails?.type)}</span></div>
+        <div class="details-row"><strong>Business option</strong><span>${escapeHtml(merchant.businessDetails?.option)}</span></div>
+        <div class="details-row"><strong>Notes</strong><span>${escapeHtml(merchant.businessDetails?.notes)}</span></div>
+        <div class="details-row"><strong>POIs</strong><span>${escapeHtml((merchant.businessDetails?.pois || []).join(', ') || 'None')}</span></div>
+        <div class="details-row"><strong>License</strong><span>${escapeHtml(merchant.businessDetails?.licenseNumber)}</span></div>
+        <div class="details-row"><strong>Tax ID</strong><span>${escapeHtml(merchant.businessDetails?.taxIdNumber)}</span></div>
+      `].join('');
+    }
+
+    function switchView(view) {
+      tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.view === view));
+      usersPanel.classList.toggle('hidden', view !== 'users');
+      merchantsPanel.classList.toggle('hidden', view !== 'merchants');
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => switchView(tab.dataset.view));
+    });
+
+    function initDashboard() {
+      const users = getSavedProfiles(USERS_KEY);
+      const merchants = getSavedProfiles(MERCHANTS_KEY);
+      renderList(userList, users, 'users');
+      renderList(merchantList, merchants, 'merchants');
+    }
+
+    initDashboard();
+  </script>
+</body>
+</html>

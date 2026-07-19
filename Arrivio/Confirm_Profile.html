@@ -465,6 +465,30 @@
       setTimeout(() => toast.classList.remove('show'), 2200);
     }
 
+    function getSavedProfiles(key) {
+      const stored = localStorage.getItem(key);
+      if (!stored) return [];
+      try {
+        return JSON.parse(stored) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function storeUserProfile(profile) {
+      if (!profile || !profile.email) return;
+      const key = 'savedArrivioUsers';
+      const list = getSavedProfiles(key);
+      const index = list.findIndex(item => item.email === profile.email);
+      const next = { ...profile };
+      if (index >= 0) {
+        list[index] = next;
+      } else {
+        list.push(next);
+      }
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+
     function renderPreferences(items, container) {
       container.innerHTML = '';
       items.forEach(pref => {
@@ -643,6 +667,7 @@
     });
 
     confirmButton.addEventListener('click', () => {
+      storeUserProfile(currentProfile);
       localStorage.removeItem('pendingProfile');
       showToast('Your profile saved successfully. Redirecting to login...');
       setTimeout(() => {
