@@ -27,16 +27,39 @@ def lambda_handler(event, context):
         or ""
     ).upper()
 
+    path = (
+        event.get("path")
+        or (event.get("requestContext") or {}).get("http", {}).get("path")
+        or ""
+    )
+    path = path.lower()
+
     if method == "OPTIONS":
         return {"statusCode": 204, "headers": CORS_HEADERS, "body": ""}
 
     if method == "GET":
+        if path.endswith("/profiles"):
+            return list_profiles(event)
         return get_profile(event)
 
     if method == "POST":
         return save_profile(event)
 
     return response(405, "Method not allowed")
+
+
+def list_profiles(event):
+    params = event.get("queryStringParameters") or {}
+    profile_type = (params.get("type") or params.get("profileType") or "user").strip().lower()
+    table = merchant_table if profile_type == "merchant" else user_table
+
+    try:
+        result = table.scan()
+        items = result.get("Items", [])
+        return response(200, f"{profile_type.capitalize()} profiles loaded", items)
+    except Exception as exc:
+        print("DynamoDB scan failed:", exc)
+        return response(500, "Unable to load profiles")
 
 
 def get_profile(event):

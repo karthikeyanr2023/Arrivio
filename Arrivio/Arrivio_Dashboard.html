@@ -243,18 +243,26 @@
     const userList = document.getElementById('userList');
     const merchantList = document.getElementById('merchantList');
 
-    const USERS_KEY = 'savedArrivioUsers';
-    const MERCHANTS_KEY = 'savedArrivioMerchants';
+    const API_BASE = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com';
+    const USER_LIST_URL = `${API_BASE}/profiles?type=user`;
+    const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchant-profile';
 
-    const sampleUsers = [];
-    const sampleMerchants = [];
+    async function fetchRemoteProfiles(type) {
+      const url = type === 'users' ? USER_LIST_URL : MERCHANT_LIST_URL;
+      const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `Failed to load ${type}`);
+      }
+      const json = await response.json();
+      return Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : [];
+    }
 
-    function getSavedProfiles(key) {
-      const stored = localStorage.getItem(key);
-      if (!stored) return [];
+    async function loadProfiles(type) {
       try {
-        return JSON.parse(stored) || [];
+        return await fetchRemoteProfiles(type);
       } catch (error) {
+        console.error(`Remote ${type} load failed:`, error);
         return [];
       }
     }
@@ -343,9 +351,9 @@
       tab.addEventListener('click', () => switchView(tab.dataset.view));
     });
 
-    function initDashboard() {
-      const users = getSavedProfiles(USERS_KEY);
-      const merchants = getSavedProfiles(MERCHANTS_KEY);
+    async function initDashboard() {
+      const users = await loadProfiles('users', USERS_KEY);
+      const merchants = await loadProfiles('merchants', MERCHANTS_KEY);
       renderList(userList, users, 'users');
       renderList(merchantList, merchants, 'merchants');
     }

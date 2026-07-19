@@ -27,12 +27,30 @@ def lambda_handler(event, context):
         return {"statusCode": 204, "headers": CORS_HEADERS, "body": ""}
 
     if method == "GET":
-        return get_merchant(event)
+        return list_or_get_merchant(event)
 
     if method == "POST":
         return save_merchant(event)
 
     return response(405, "Method not allowed")
+
+
+def list_or_get_merchant(event):
+    params = event.get("queryStringParameters") or {}
+    email = (params.get("email") or "").strip().lower()
+    if email:
+        return get_merchant(event)
+    return list_merchants(event)
+
+
+def list_merchants(event):
+    try:
+        result = merchant_table.scan()
+        items = result.get("Items", [])
+        return response(200, "Merchant profiles loaded", items)
+    except Exception as exc:
+        print("DynamoDB scan failed (merchant):", exc)
+        return response(500, "Unable to load merchant profiles")
 
 
 def get_merchant(event):
