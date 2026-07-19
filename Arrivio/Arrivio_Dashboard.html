@@ -352,13 +352,15 @@
     });
 
     async function initDashboard() {
-      const users = await loadProfiles('users', USERS_KEY);
-      const merchants = await loadProfiles('merchants', MERCHANTS_KEY);
+      const users = await loadProfiles('users');
+      const merchants = await loadProfiles('merchants');
       renderList(userList, users, 'users');
       renderList(merchantList, merchants, 'merchants');
     }
 
-    initDashboard();
+    initDashboard().catch(error => {
+      console.error('Dashboard initialization failed:', error);
+    });
   </script>
 </body>
 </html>
