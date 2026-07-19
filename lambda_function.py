@@ -38,8 +38,12 @@ def lambda_handler(event, context):
         return {"statusCode": 204, "headers": CORS_HEADERS, "body": ""}
 
     if method == "GET":
-        if path.endswith("/profiles"):
-            return list_profiles(event)
+        if path.endswith("/profiles") or path.endswith("/profile"):
+            # Support list endpoint for user profiles on the existing /profile route
+            params = event.get("queryStringParameters") or {}
+            email = (params.get("email") or "").strip().lower()
+            if not email:
+                return list_profiles(event)
         return get_profile(event)
 
     if method == "POST":
