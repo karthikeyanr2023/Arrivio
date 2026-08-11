@@ -258,13 +258,45 @@
       return Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : [];
     }
 
-    async function loadProfiles(type) {
+    function getLocalProfiles(type) {
+      const key = type === 'users' ? 'savedArrivioUsers' : 'savedArrivioMerchants';
+      const stored = localStorage.getItem(key);
+      if (!stored) return [];
       try {
-        return await fetchRemoteProfiles(type);
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : [];
       } catch (error) {
-        console.error(`Remote ${type} load failed:`, error);
         return [];
       }
+    }
+
+    function mergeProfiles(remoteProfiles, localProfiles) {
+      const seen = new Set();
+      const merged = [];
+      const addProfile = profile => {
+        const email = (profile.email || '').toLowerCase().trim();
+        if (!email || seen.has(email)) return;
+        seen.add(email);
+        merged.push(profile);
+      };
+      remoteProfiles.forEach(addProfile);
+      localProfiles.forEach(addProfile);
+      return merged;
+    }
+
+    async function loadProfiles(type) {
+      const localProfiles = getLocalProfiles(type);
+      let remoteProfiles = [];
+      try {
+        remoteProfiles = await fetchRemoteProfiles(type);
+      } catch (error) {
+        console.error(`Remote ${type} load failed:`, error);
+      }
+
+      if (!remoteProfiles.length && localProfiles.length) {
+        return localProfiles;
+      }
+      return mergeProfiles(remoteProfiles, localProfiles);
     }
 
     function renderList(listElement, items, type) {
