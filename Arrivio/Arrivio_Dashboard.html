@@ -244,7 +244,8 @@
     const merchantList = document.getElementById('merchantList');
 
     const API_BASE = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com';
-    const USER_LIST_URL = `${API_BASE}/profile?type=user`;
+    // Use explicit stage users endpoint (list lambda)
+    const USER_LIST_URL = `${API_BASE}/DEV/users`;
     const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchant-profile';
 
     async function fetchRemoteProfiles(type) {
@@ -258,45 +259,13 @@
       return Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : [];
     }
 
-    function getLocalProfiles(type) {
-      const key = type === 'users' ? 'savedArrivioUsers' : 'savedArrivioMerchants';
-      const stored = localStorage.getItem(key);
-      if (!stored) return [];
-      try {
-        const parsed = JSON.parse(stored);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (error) {
-        return [];
-      }
-    }
-
-    function mergeProfiles(remoteProfiles, localProfiles) {
-      const seen = new Set();
-      const merged = [];
-      const addProfile = profile => {
-        const email = (profile.email || '').toLowerCase().trim();
-        if (!email || seen.has(email)) return;
-        seen.add(email);
-        merged.push(profile);
-      };
-      remoteProfiles.forEach(addProfile);
-      localProfiles.forEach(addProfile);
-      return merged;
-    }
-
     async function loadProfiles(type) {
-      const localProfiles = getLocalProfiles(type);
-      let remoteProfiles = [];
       try {
-        remoteProfiles = await fetchRemoteProfiles(type);
+        return await fetchRemoteProfiles(type);
       } catch (error) {
         console.error(`Remote ${type} load failed:`, error);
+        return [];
       }
-
-      if (!remoteProfiles.length && localProfiles.length) {
-        return localProfiles;
-      }
-      return mergeProfiles(remoteProfiles, localProfiles);
     }
 
     function renderList(listElement, items, type) {
@@ -318,13 +287,26 @@
       });
     }
 
+    function formatDate(iso) {
+      if (!iso) return 'Unknown';
+      try {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return iso;
+        return d.toLocaleString();
+      } catch (e) {
+        return iso;
+      }
+    }
+
     function escapeHtml(value) {
       return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function createListItem(item, index, type) {
       const name = type === 'users' ? item.fullName || item.email || 'Unknown user' : item.fullName || item.businessDetails?.title || item.email || 'Unknown merchant';
-      const subtitle = type === 'users' ? item.email : item.businessDetails?.title || item.country || item.email;
+      const subtitle = type === 'users'
+        ? `${item.email || ''}${item.createdAt ? ' • Joined ' + formatDate(item.createdAt) : ''}`
+        : item.businessDetails?.title || item.country || item.email;
       const details = type === 'users' ? renderUserDetails(item) : renderMerchantDetails(item);
       return `
         <li class="item-card">
@@ -345,6 +327,7 @@
 
     function renderUserDetails(user) {
       return [`
+        <div class="details-row"><strong>Joined</strong><span>${escapeHtml(user.createdAt ? formatDate(user.createdAt) : '')}</span></div>
         <div class="details-row"><strong>Name</strong><span>${escapeHtml(user.fullName)}</span></div>
         <div class="details-row"><strong>Email</strong><span>${escapeHtml(user.email)}</span></div>
         <div class="details-row"><strong>Country</strong><span>${escapeHtml(user.country)}</span></div>
