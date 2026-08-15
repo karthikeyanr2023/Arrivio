@@ -306,20 +306,59 @@
     const form = document.getElementById('loginForm');
     const messageBox = document.getElementById('message');
 
-    form.addEventListener('submit', event => {
+    // API endpoints for user and merchant lists
+    const USER_LIST_URL = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com/DEV/users';
+    const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
+
+    form.addEventListener('submit', async event => {
       event.preventDefault();
       const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
 
-      if (!username || !password) {
-        showMessage('Please enter both user name and password.', true);
+      if (!username) {
+        showMessage('Please enter a user name.', true);
         return;
       }
 
-      showMessage('Login submitted. Redirecting...', false);
-      setTimeout(() => {
-        window.location.href = 'ProjectwinsPage1.html';
-      }, 900);
+      showMessage('Checking username...', false);
+
+      try {
+        // Check users first, then merchants
+        const [usersResp, merchantsResp] = await Promise.allSettled([
+          fetch(USER_LIST_URL, { headers: { 'Content-Type': 'application/json' } }),
+          fetch(MERCHANT_LIST_URL, { headers: { 'Content-Type': 'application/json' } })
+        ]);
+
+        let users = [];
+        let merchants = [];
+
+        if (usersResp.status === 'fulfilled' && usersResp.value.ok) {
+          const j = await usersResp.value.json().catch(() => ({}));
+          users = Array.isArray(j.data) ? j.data : [];
+        }
+
+        if (merchantsResp.status === 'fulfilled' && merchantsResp.value.ok) {
+          const j = await merchantsResp.value.json().catch(() => ({}));
+          merchants = Array.isArray(j.data) ? j.data : [];
+        }
+
+        const lookup = username.toLowerCase();
+        const foundUser = users.find(u => (u.email || '').toLowerCase() === lookup || (u.fullName || '').toLowerCase() === lookup);
+        if (foundUser) {
+          window.location.href = `Home_Login_Success.html?username=${encodeURIComponent(username)}&type=user`;
+          return;
+        }
+
+        const foundMerchant = merchants.find(m => (m.email || '').toLowerCase() === lookup || (m.fullName || '').toLowerCase() === lookup);
+        if (foundMerchant) {
+          window.location.href = `Home_Login_Success.html?username=${encodeURIComponent(username)}&type=merchant`;
+          return;
+        }
+
+        showMessage('No user or merchant found with that user name.', true);
+      } catch (err) {
+        console.error(err);
+        showMessage('An error occurred while checking username. Try again.', true);
+      }
     });
 
     function showMessage(text, isError) {
