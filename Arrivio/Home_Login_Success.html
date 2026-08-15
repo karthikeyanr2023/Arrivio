@@ -57,6 +57,14 @@
                 <li>Use <strong>Logout</strong> to return to the sign-in page.</li>
               </ul>
             </div>
+            <div style="margin-top:14px">
+              <label for="destinationInput" class="small" style="font-weight:700;display:block;margin-bottom:6px">Destination</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input id="destinationInput" type="text" placeholder="Enter destination" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(16,42,68,0.08)" />
+                <button id="setDestinationBtn" style="padding:10px 14px;border-radius:8px;background:var(--accent);color:#fff;border:0;cursor:pointer">Set</button>
+              </div>
+              <div id="destinationMsg" class="small" style="margin-top:8px;display:none;color:var(--muted)"></div>
+            </div>
           </section>
 
           <section id="profileSection" style="display:none">
@@ -160,6 +168,30 @@
       welcomeTitle.textContent = 'Welcome, ' + escapeHtml(username);
       welcomeSubtitle.textContent = 'Signed in';
     }
+
+    // Destination input handling (saves to localStorage)
+    const destInput = document.getElementById('destinationInput');
+    const setDestBtn = document.getElementById('setDestinationBtn');
+    const destMsg = document.getElementById('destinationMsg');
+
+    // Load existing destination
+    try{
+      const existing = localStorage.getItem('destination');
+      if(existing) destInput.value = existing;
+    }catch(e){}
+
+    setDestBtn.addEventListener('click', () => {
+      const v = destInput.value.trim();
+      if(!v){
+        destMsg.textContent = 'Please enter a destination.';
+        destMsg.style.display = '';
+        return;
+      }
+      try{ localStorage.setItem('destination', v); }catch(e){}
+      destMsg.textContent = 'Destination saved.';
+      destMsg.style.display = '';
+      setTimeout(()=> destMsg.style.display = 'none', 2200);
+    });
   </script>
 </body>
 </html>
