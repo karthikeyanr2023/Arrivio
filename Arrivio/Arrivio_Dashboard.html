@@ -335,6 +335,8 @@
         <div class="details-row"><strong>City</strong><span>${escapeHtml(user.address?.city)}</span></div>
         <div class="details-row"><strong>Zip code</strong><span>${escapeHtml(user.address?.zipcode)}</span></div>
         <div class="details-row"><strong>Preferences</strong><span>${escapeHtml((user.preferences || []).join(', ') || 'None')}</span></div>
+        <div class="details-row"><strong>Latitude</strong><span>${escapeHtml(user.geocode?.lat || 'Pending')}</span></div>
+        <div class="details-row"><strong>Longitude</strong><span>${escapeHtml(user.geocode?.lng || 'Pending')}</span></div>
       `].join('');
     }
 
@@ -353,6 +355,8 @@
         <div class="details-row"><strong>POIs</strong><span>${escapeHtml((merchant.businessDetails?.pois || []).join(', ') || 'None')}</span></div>
         <div class="details-row"><strong>License</strong><span>${escapeHtml(merchant.businessDetails?.licenseNumber)}</span></div>
         <div class="details-row"><strong>Tax ID</strong><span>${escapeHtml(merchant.businessDetails?.taxIdNumber)}</span></div>
+        <div class="details-row"><strong>Latitude</strong><span>${escapeHtml(merchant.geocode?.lat || 'Pending')}</span></div>
+        <div class="details-row"><strong>Longitude</strong><span>${escapeHtml(merchant.geocode?.lng || 'Pending')}</span></div>
       `].join('');
     }
 

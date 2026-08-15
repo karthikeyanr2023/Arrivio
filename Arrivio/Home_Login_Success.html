@@ -145,6 +145,8 @@
           <div class="row"><div class="label">Zip</div><div class="value">${escapeHtml(profile.address?.zipcode)}</div></div>
           ${type==='merchant'? `<div class="row"><div class="label">Business</div><div class="value">${escapeHtml(profile.businessDetails?.title)}</div></div>` : ''}
           <div class="row"><div class="label">Preferences</div><div class="value">${escapeHtml((profile.preferences || []).join(', ') || 'None')}</div></div>
+          <div class="row"><div class="label">Latitude</div><div class="value">${escapeHtml(profile.geocode?.lat || 'Pending')}</div></div>
+          <div class="row"><div class="label">Longitude</div><div class="value">${escapeHtml(profile.geocode?.lng || 'Pending')}</div></div>
         </div>
       `;
     }
