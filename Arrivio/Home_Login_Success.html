@@ -57,6 +57,7 @@
                 <button id="setDestinationBtn" style="padding:10px 14px;border-radius:8px;background:var(--accent);color:#fff;border:0;cursor:pointer">Set</button>
               </div>
               <div id="destinationMsg" class="small" style="margin-top:8px;display:none;color:var(--muted)"></div>
+              <div id="destCoords" class="small" style="margin-top:6px;display:none;color:var(--muted)"></div>
             </div>
           </section>
 
@@ -162,10 +163,14 @@
       welcomeSubtitle.textContent = 'Signed in';
     }
 
-    // Destination input handling (saves to localStorage)
+    // Destination input handling (saves to localStorage and resolves geocode)
     const destInput = document.getElementById('destinationInput');
     const setDestBtn = document.getElementById('setDestinationBtn');
     const destMsg = document.getElementById('destinationMsg');
+    const destCoords = document.getElementById('destCoords');
+
+    // TODO: set this to your deployed API Gateway invoke URL
+    const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
 
     // Load existing destination
     try{
@@ -173,17 +178,42 @@
       if(existing) destInput.value = existing;
     }catch(e){}
 
-    setDestBtn.addEventListener('click', () => {
+    setDestBtn.addEventListener('click', async () => {
       const v = destInput.value.trim();
-      if(!v){
-        destMsg.textContent = 'Please enter a destination.';
-        destMsg.style.display = '';
-        return;
-      }
-      try{ localStorage.setItem('destination', v); }catch(e){}
-      destMsg.textContent = 'Destination saved.';
+      if(!v){ destMsg.textContent = 'Please enter a destination.'; destMsg.style.display = ''; return; }
+
       destMsg.style.display = '';
-      setTimeout(()=> destMsg.style.display = 'none', 2200);
+      destMsg.textContent = 'Resolving destination...';
+      destCoords.style.display = 'none';
+
+      // Save raw destination immediately
+      try{ localStorage.setItem('destination', v); }catch(e){}
+
+      // Call geocode API (send both address and addressText—handler will prefer addressText for plain addresses)
+      try{
+        const resp = await fetch(GEOCODE_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: v, addressText: v })
+        });
+        const j = await resp.json().catch(()=>({}));
+        if(!resp.ok){ destMsg.textContent = 'Geocode failed: ' + (j.error || resp.statusText || resp.status); return; }
+        const lat = j.lat || (j.geometry && j.geometry.location && j.geometry.location.lat);
+        const lng = j.lng || (j.geometry && j.geometry.location && j.geometry.location.lng);
+        if(lat && lng){
+          try{ localStorage.setItem('destination_geocode', JSON.stringify({lat,lng})); }catch(e){}
+          try{ localStorage.setItem('destination_geocode_details', JSON.stringify(j)); }catch(e){}
+          destMsg.textContent = 'Destination resolved.';
+          destCoords.style.display = '';
+          const src = j.source || (j.result && j.result.source) || '';
+          destCoords.textContent = 'Lat: ' + Number(lat).toFixed(6) + ', Lng: ' + Number(lng).toFixed(6) + (src ? ('  (source: ' + src + ')') : '');
+        }else{
+          destMsg.textContent = 'Geocode succeeded but no coordinates returned.';
+        }
+      }catch(err){
+        destMsg.textContent = 'Geocode error: ' + (err.message || err);
+      }
+      setTimeout(()=> destMsg.style.display = 'none', 5000);
     });
   </script>
 </body>
