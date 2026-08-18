@@ -96,7 +96,14 @@
 
     navWelcome.addEventListener('click', () => showSection('welcome'));
     navProfile.addEventListener('click', () => showSection('profile'));
-    navLogout.addEventListener('click', () => { location.href = 'Home_Login.html'; });
+    navLogout.addEventListener('click', () => {
+      try{
+        localStorage.removeItem('destination');
+        localStorage.removeItem('destination_geocode');
+        localStorage.removeItem('destination_geocode_details');
+      }catch(e){}
+      location.href = 'Home_Login.html';
+    });
 
     function showSection(s) {
       navWelcome.classList.toggle('active', s === 'welcome');
@@ -172,11 +179,8 @@
     // TODO: set this to your deployed API Gateway invoke URL
     const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
 
-    // Load existing destination
-    try{
-      const existing = localStorage.getItem('destination');
-      if(existing) destInput.value = existing;
-    }catch(e){}
+    // Do not persist raw destination across refresh/login; always start empty
+    try{ destInput.value = ''; }catch(e){}
 
     setDestBtn.addEventListener('click', async () => {
       const v = destInput.value.trim();
@@ -186,8 +190,7 @@
       destMsg.textContent = 'Resolving destination...';
       destCoords.style.display = 'none';
 
-      // Save raw destination immediately
-      try{ localStorage.setItem('destination', v); }catch(e){}
+      // Do not persist raw destination across refresh/login
 
       // Call geocode API (send both address and addressText—handler will prefer addressText for plain addresses)
       try{
