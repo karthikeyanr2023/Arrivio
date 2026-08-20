@@ -681,6 +681,11 @@
           return;
         }
 
+        // also include geocode at top-level for backend compatibility
+        if (currentProfile.address && currentProfile.address.geocode) {
+          currentProfile.geocode = currentProfile.address.geocode;
+        }
+
         await submitMerchantProfile(currentProfile);
       } catch (err) {
         console.error('Geocode/submit error:', err);
