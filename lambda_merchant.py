@@ -94,6 +94,9 @@ def save_merchant(event):
     street = (address.get("street") or "").strip()
     city = (address.get("city") or "").strip()
     zipcode = (address.get("zipcode") or "").strip()
+    state = (address.get("state") or "").strip()
+    # geocode may be provided under address.geocode or top-level body.geocode
+    geocode = address.get("geocode") or body.get("geocode") or None
     if not street or not city or not zipcode:
         return response(400, "Please provide complete address for merchant.")
 
@@ -114,6 +117,16 @@ def save_merchant(event):
         "businessDetails": business,
         "createdAt": datetime.utcnow().isoformat() + "Z",
     }
+
+    # include state if present
+    if state:
+        item["address"]["state"] = state
+
+    # include geocode at top-level for easier reading, and also keep under address if provided
+    if geocode and isinstance(geocode, dict):
+        # accept {lat:..., lng:...} or {lat:..., lng:..., source:...}
+        item["address"]["geocode"] = geocode
+        item["geocode"] = geocode
 
     try:
         merchant_table.put_item(Item=item)
