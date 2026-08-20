@@ -144,18 +144,23 @@
       welcomeTitle.textContent = 'Welcome, ' + (profile.fullName || profile.email || '');
       welcomeSubtitle.textContent = type === 'user' ? 'You are signed in as a user.' : 'You are signed in as a merchant.';
 
+      const displayState = profile.address?.state || '';
+      const displayLat = profile.geocode?.lat || profile.address?.geocode?.lat || '';
+      const displayLng = profile.geocode?.lng || profile.address?.geocode?.lng || '';
+
       profileContent.innerHTML = `
         <div class="profile">
           <div class="row"><div class="label">Name</div><div class="value">${escapeHtml(profile.fullName)}</div></div>
           <div class="row"><div class="label">Email</div><div class="value">${escapeHtml(profile.email)}</div></div>
           <div class="row"><div class="label">Country</div><div class="value">${escapeHtml(profile.country)}</div></div>
+          <div class="row"><div class="label">State</div><div class="value">${escapeHtml(displayState)}</div></div>
           <div class="row"><div class="label">Street</div><div class="value">${escapeHtml(profile.address?.street)}</div></div>
           <div class="row"><div class="label">City</div><div class="value">${escapeHtml(profile.address?.city)}</div></div>
           <div class="row"><div class="label">Zip</div><div class="value">${escapeHtml(profile.address?.zipcode)}</div></div>
           ${type==='merchant'? `<div class="row"><div class="label">Business</div><div class="value">${escapeHtml(profile.businessDetails?.title)}</div></div>` : ''}
           <div class="row"><div class="label">Preferences</div><div class="value">${escapeHtml((profile.preferences || []).join(', ') || 'None')}</div></div>
-          <div class="row"><div class="label">Latitude</div><div class="value">${escapeHtml(profile.geocode?.lat || 'Pending')}</div></div>
-          <div class="row"><div class="label">Longitude</div><div class="value">${escapeHtml(profile.geocode?.lng || 'Pending')}</div></div>
+          <div class="row"><div class="label">Latitude</div><div class="value">${escapeHtml(displayLat || 'Pending')}</div></div>
+          <div class="row"><div class="label">Longitude</div><div class="value">${escapeHtml(displayLng || 'Pending')}</div></div>
         </div>
       `;
     }
