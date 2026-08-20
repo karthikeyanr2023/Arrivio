@@ -346,6 +346,15 @@
 
         <div class="field-grid">
           <div class="field">
+            <label for="state">State / Region</label>
+            <input type="text" id="state" name="state" placeholder="State or Region" />
+          </div>
+          <div class="field">
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
             <label for="streetAddress">Street address</label>
             <input type="text" id="streetAddress" name="streetAddress" placeholder="123 Main St" />
           </div>
@@ -611,6 +620,7 @@
           const fullName = document.getElementById('fullName').value.trim();
           const email = document.getElementById('email').value.trim();
           const country = document.getElementById('country').value;
+          const state = document.getElementById('state') ? document.getElementById('state').value.trim() : '';
           const streetAddress = document.getElementById('streetAddress').value.trim();
           const city = document.getElementById('city').value.trim();
           const pin = document.getElementById('pin').value.trim();
@@ -672,6 +682,7 @@
             address: {
               street: streetAddress,
               city,
+              state: state,
               zipcode: pin,
             },
             businessDetails,
@@ -739,6 +750,7 @@
             address: {
               street: streetAddress,
               city: city,
+              state: state,
               zipcode: pin,
             },
             businessDetails,
