@@ -607,7 +607,7 @@
         showToast('Merchant profile saved successfully. Redirecting to login...');
         setTimeout(() => {
           window.location.href = 'Home_Login.html';
-        }, 1400);
+        }, 10000);
       } catch (error) {
         console.error('Merchant profile submit failed:', error);
         showMessage(error.message || 'Unable to save merchant profile. Please try again.', true);
