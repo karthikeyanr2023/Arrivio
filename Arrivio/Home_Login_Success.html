@@ -50,7 +50,7 @@
               </div>
             </div>
             
-            <div style="margin-top:14px">
+            <div id="destinationBlock" style="margin-top:14px">
               <label for="destinationInput" class="small" style="font-weight:700;display:block;margin-bottom:6px">Destination</label>
               <div style="display:flex;gap:8px;align-items:center">
                 <input id="destinationInput" type="text" placeholder="Enter destination" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(16,42,68,0.08)" />
@@ -173,6 +173,14 @@
     } else {
       welcomeTitle.textContent = 'Welcome, ' + escapeHtml(username);
       welcomeSubtitle.textContent = 'Signed in';
+      // If signed in as a merchant, hide the destination input and show profile below welcome
+      const destinationBlock = document.getElementById('destinationBlock');
+      if (type === 'merchant') {
+        if (destinationBlock) destinationBlock.style.display = 'none';
+        profileSection.style.display = '';
+        // render profile immediately
+        renderProfile();
+      }
     }
 
     // Destination input handling (saves to localStorage and resolves geocode)
