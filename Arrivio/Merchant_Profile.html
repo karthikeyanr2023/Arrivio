@@ -502,6 +502,7 @@
         const streetElement = document.getElementById('streetAddress');
         const cityElement = document.getElementById('city');
         const pinElement = document.getElementById('pin');
+        const stateElement = document.getElementById('state');
 
         const fullName = fullNameElement.value.trim();
         const email = emailElement.value.trim();
@@ -528,6 +529,10 @@
         }
         if (!city) {
           markInvalidField(cityElement, 'Please enter your city before adding business details.');
+          return false;
+        }
+        if (!stateElement || !stateElement.value.trim()) {
+          markInvalidField(stateElement || streetElement, 'Please enter your state / region before adding business details.');
           return false;
         }
         if (!pin) {
@@ -653,6 +658,11 @@
             resetSaveState();
             return;
           }
+          if (!state) {
+            showMessage('Please enter your state on the merchant page before confirming.', true);
+            resetSaveState();
+            return;
+          }
           if (!city) {
             showMessage('Please enter your city on the merchant page before confirming.', true);
             resetSaveState();
@@ -707,6 +717,7 @@
           const country = document.getElementById('country').value;
           const streetAddress = document.getElementById('streetAddress').value.trim();
           const city = document.getElementById('city').value.trim();
+          const state = document.getElementById('state') ? document.getElementById('state').value.trim() : '';
           const pin = document.getElementById('pin').value.trim();
           const businessTypeValue = businessType.value;
 
@@ -724,6 +735,10 @@
           }
           if (!streetAddress) {
             showMessage('Please enter your street address.', true);
+            return;
+          }
+          if (!state) {
+            showMessage('Please enter your state / region.', true);
             return;
           }
           if (!city) {

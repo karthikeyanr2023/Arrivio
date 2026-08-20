@@ -635,6 +635,12 @@
         return;
       }
 
+      const stateVal = stateInput ? (stateInput.value || '').trim() : ((currentProfile.address && currentProfile.address.state) || '').trim();
+      if (!stateVal) {
+        showMessage('Please enter the state/region before confirming.', true);
+        return;
+      }
+
       // Build address string from profile fields
       const country = (currentProfile.country || '').trim();
       const street = (currentProfile.address && currentProfile.address.street) || '';
@@ -730,6 +736,10 @@
       }
       if (!updatedProfile.address.zipcode) {
         showMessage('Please enter your pin code.', true);
+        return;
+      }
+      if (!updatedProfile.address.state) {
+        showMessage('Please enter your state / region.', true);
         return;
       }
       if (!updatedProfile.businessDetails.title) {
