@@ -271,6 +271,14 @@
           <strong id="displayZipcode"></strong>
         </div>
         <div class="profile-row">
+          <span>Latitude</span>
+          <strong id="displayLatitude"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Longitude</span>
+          <strong id="displayLongitude"></strong>
+        </div>
+        <div class="profile-row">
           <span>Business title</span>
           <strong id="displayBusinessTitle"></strong>
         </div>
@@ -399,6 +407,8 @@
     const displayStreet = document.getElementById('displayStreet');
     const displayCity = document.getElementById('displayCity');
     const displayZipcode = document.getElementById('displayZipcode');
+    const displayLatitude = document.getElementById('displayLatitude');
+    const displayLongitude = document.getElementById('displayLongitude');
     const displayBusinessTitle = document.getElementById('displayBusinessTitle');
     const displayBusinessType = document.getElementById('displayBusinessType');
     const displayBusinessOption = document.getElementById('displayBusinessOption');
@@ -425,6 +435,7 @@
     const cancelEdit = document.getElementById('cancelEdit');
 
     const MERCHANT_API_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchant-profile';
+    const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
 
     const businessOptions = {
       Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
@@ -606,12 +617,60 @@
       }
     }
 
-    confirmButton.addEventListener('click', () => {
+    confirmButton.addEventListener('click', async () => {
       if (!currentProfile) {
         showMessage('No merchant profile found to submit.', true);
         return;
       }
-      submitMerchantProfile(currentProfile);
+
+      // Build address string from profile fields
+      const country = (currentProfile.country || '').trim();
+      const street = (currentProfile.address && currentProfile.address.street) || '';
+      const city = (currentProfile.address && currentProfile.address.city) || '';
+      const zipcode = (currentProfile.address && currentProfile.address.zipcode) || '';
+      const parts = [street, city, zipcode, country].map(s => (s||'').trim()).filter(Boolean);
+      const addressText = parts.join(', ');
+
+      confirmButton.disabled = true;
+      confirmButton.textContent = 'Resolving location...';
+
+      try {
+        const resp = await fetch(GEOCODE_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ addressText })
+        });
+        const body = await resp.json().catch(()=>({}));
+        if (!resp.ok) {
+          const err = body.error || body.message || `Geocode failed (${resp.status})`;
+          showMessage(err, true);
+          confirmButton.disabled = false;
+          confirmButton.textContent = 'Confirm';
+          return;
+        }
+
+        const lat = body.lat || (body.geometry && body.geometry.location && body.geometry.location.lat);
+        const lng = body.lng || (body.geometry && body.geometry.location && body.geometry.location.lng);
+        if (lat && lng) {
+          currentProfile.address = currentProfile.address || {};
+          currentProfile.address.geocode = { lat: lat, lng: lng, source: body.source || '' };
+          displayLatitude.textContent = Number(lat).toFixed(6);
+          displayLongitude.textContent = Number(lng).toFixed(6);
+        } else {
+          showMessage('Geocode succeeded but no coordinates returned.', true);
+          confirmButton.disabled = false;
+          confirmButton.textContent = 'Confirm';
+          return;
+        }
+
+        await submitMerchantProfile(currentProfile);
+      } catch (err) {
+        console.error('Geocode/submit error:', err);
+        showMessage('Error resolving location: ' + (err.message || err), true);
+      } finally {
+        confirmButton.disabled = false;
+        confirmButton.textContent = 'Confirm';
+      }
     });
 
     businessTypeInput.addEventListener('change', () => {
