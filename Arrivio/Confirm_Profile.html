@@ -636,13 +636,38 @@
       showSummary();
     });
 
-    confirmButton.addEventListener('click', () => {
-      storeUserProfile(currentProfile);
-      localStorage.removeItem('pendingProfile');
-      showToast('Your profile saved successfully. Redirecting to login...');
-      setTimeout(() => {
-        window.location.href = 'Home_Login.html';
-      }, 1400);
+    confirmButton.addEventListener('click', async () => {
+      if (!currentProfile) {
+        showMessage('No profile found to confirm.', true);
+        return;
+      }
+
+      const normalizedProfile = {
+        ...currentProfile,
+        address: {
+          ...(currentProfile.address || {}),
+          state: (currentProfile.address && currentProfile.address.state) || stateInput.value.trim(),
+          geocode: currentProfile.geocode || (currentProfile.address && currentProfile.address.geocode) || null,
+        },
+        geocode: currentProfile.geocode || (currentProfile.address && currentProfile.address.geocode) || null,
+      };
+
+      try {
+        confirmButton.disabled = true;
+        confirmButton.textContent = 'Saving...';
+        await saveProfile(normalizedProfile);
+        storeUserProfile(normalizedProfile);
+        localStorage.removeItem('pendingProfile');
+        showToast('Your profile saved successfully. Redirecting to login...');
+        setTimeout(() => {
+          window.location.href = 'Home_Login.html';
+        }, 1400);
+      } catch (error) {
+        showMessage(error.message || 'Unable to save profile to DynamoDB.', true);
+      } finally {
+        confirmButton.disabled = false;
+        confirmButton.textContent = 'Confirm profile';
+      }
     });
 
     editForm.addEventListener('submit', async event => {
