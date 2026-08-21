@@ -308,6 +308,10 @@
               <label for="zipcode">Zip code</label>
               <input type="text" id="zipcode" name="zipcode" placeholder="Zip code" />
             </div>
+            <div class="field">
+              <label for="state">State / Region</label>
+              <input type="text" id="state" name="state" placeholder="State or Region" />
+            </div>
           </div>
         </div>
 
@@ -404,6 +408,7 @@
       const country = document.getElementById('country').value;
       const streetAddress = document.getElementById('streetAddress').value.trim();
       const city = document.getElementById('city').value.trim();
+      const state = document.getElementById('state') ? document.getElementById('state').value.trim() : '';
       const zipcode = document.getElementById('zipcode').value.trim();
       const preferences = Array.from(document.querySelectorAll('input[name="preferences"]:checked'))
         .map(input => input.value);
@@ -433,6 +438,11 @@
         return;
       }
 
+      if (!state) {
+        showMessage('Please enter your state / region.', true);
+        return;
+      }
+
       if (!zipcode) {
         showMessage('Please enter your zip code.', true);
         return;
@@ -458,6 +468,7 @@
             address: {
               street: streetAddress,
               city,
+              state,
               zipcode,
             },
             preferences,
@@ -472,7 +483,7 @@
           return;
         }
 
-        const profileData = { fullName, email, country, address: { street: streetAddress, city, zipcode }, preferences };
+        const profileData = { fullName, email, country, address: { street: streetAddress, city, state, zipcode }, preferences };
         localStorage.setItem('pendingProfile', JSON.stringify(profileData));
         showMessage('Profile saved successfully! Redirecting to confirmation...', false);
         setTimeout(() => {
