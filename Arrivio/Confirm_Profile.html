@@ -552,7 +552,30 @@
           throw new Error('Profile not found');
         }
         const data = await response.json();
-        return data.data || data;
+        const profile = data.data || data;
+        const stored = localStorage.getItem('pendingProfile');
+        if (!stored) {
+          return profile;
+        }
+        const pending = JSON.parse(stored);
+        if (pending && pending.email === email) {
+          const pendingGeocode = pending.geocode || (pending.address && pending.address.geocode) || null;
+          const profileGeocode = profile.geocode || (profile.address && profile.address.geocode) || null;
+          if (!profileGeocode && pendingGeocode) {
+            const nextProfile = {
+              ...profile,
+              ...pending,
+              geocode: pendingGeocode,
+              address: {
+                ...(profile.address || {}),
+                ...(pending.address || {}),
+                geocode: pendingGeocode,
+              },
+            };
+            return nextProfile;
+          }
+        }
+        return profile;
       } catch (error) {
         const stored = localStorage.getItem('pendingProfile');
         if (stored) {
@@ -628,6 +651,7 @@
         input => input.value,
       );
 
+      const fallbackGeocode = (currentProfile && (currentProfile.geocode || (currentProfile.address && currentProfile.address.geocode))) || null;
       const updatedProfile = {
         fullName: fullNameInput.value.trim(),
         email: emailInput.value.trim(),
@@ -637,7 +661,9 @@
           city: cityInput.value.trim(),
           state: stateInput.value.trim(),
           zipcode: zipcodeInput.value.trim(),
+          geocode: fallbackGeocode,
         },
+        geocode: fallbackGeocode,
         preferences: updatedPreferences,
       };
 
@@ -686,8 +712,12 @@
 
       try {
         const profile = await fetchProfile(email);
-        populateProfile(profile);
-        profileSummary.classList.remove('hidden');
+        if (profile && profile.email === email) {
+          populateProfile(profile);
+          profileSummary.classList.remove('hidden');
+          return;
+        }
+        throw new Error('Profile not found');
       } catch (error) {
         const stored = localStorage.getItem('pendingProfile');
         if (stored) {
