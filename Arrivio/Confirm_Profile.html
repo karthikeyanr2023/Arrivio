@@ -256,6 +256,10 @@
           <strong id="displayCountry"></strong>
         </div>
         <div class="profile-row">
+          <span>State / Region</span>
+          <strong id="displayState"></strong>
+        </div>
+        <div class="profile-row">
           <span>Street address</span>
           <strong id="displayStreet"></strong>
         </div>
@@ -266,6 +270,14 @@
         <div class="profile-row">
           <span>Zip code</span>
           <strong id="displayZipcode"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Latitude</span>
+          <strong id="displayLatitude"></strong>
+        </div>
+        <div class="profile-row">
+          <span>Longitude</span>
+          <strong id="displayLongitude"></strong>
         </div>
         
         <div class="profile-row">
@@ -311,6 +323,10 @@
         <div class="form-row">
           <label for="cityInput">City</label>
           <input type="text" id="cityInput" name="city" placeholder="City" />
+        </div>
+        <div class="form-row">
+          <label for="stateInput">State / Region</label>
+          <input type="text" id="stateInput" name="state" placeholder="State / Region" />
         </div>
         <div class="form-row">
           <label for="zipcodeInput">Zip code</label>
@@ -370,9 +386,12 @@
     const displayFullName = document.getElementById('displayFullName');
     const displayEmail = document.getElementById('displayEmail');
     const displayCountry = document.getElementById('displayCountry');
+    const displayState = document.getElementById('displayState');
     const displayStreet = document.getElementById('displayStreet');
     const displayCity = document.getElementById('displayCity');
     const displayZipcode = document.getElementById('displayZipcode');
+    const displayLatitude = document.getElementById('displayLatitude');
+    const displayLongitude = document.getElementById('displayLongitude');
     const displayPreferences = document.getElementById('displayPreferences');
     
 
@@ -381,6 +400,7 @@
     const countryInput = document.getElementById('countryInput');
     const streetInput = document.getElementById('streetInput');
     const cityInput = document.getElementById('cityInput');
+    const stateInput = document.getElementById('stateInput');
     const zipcodeInput = document.getElementById('zipcodeInput');
     
     const editPreferences = document.getElementById('editPreferences');
@@ -501,20 +521,26 @@
 
     function populateProfile(profile) {
       currentProfile = profile;
+      const address = profile.address || {};
+      const geocode = profile.geocode || address.geocode || null;
       displayFullName.textContent = profile.fullName || '';
       displayEmail.textContent = profile.email || '';
       displayCountry.textContent = profile.country || '';
-      displayStreet.textContent = (profile.address && profile.address.street) || '';
-      displayCity.textContent = (profile.address && profile.address.city) || '';
-      displayZipcode.textContent = (profile.address && profile.address.zipcode) || '';
+      displayState.textContent = address.state || '';
+      displayStreet.textContent = address.street || '';
+      displayCity.textContent = address.city || '';
+      displayZipcode.textContent = address.zipcode || '';
+      displayLatitude.textContent = geocode && geocode.lat !== undefined ? Number(geocode.lat).toFixed(6) : 'Not available';
+      displayLongitude.textContent = geocode && geocode.lng !== undefined ? Number(geocode.lng).toFixed(6) : 'Not available';
       renderPreferences(profile.preferences || [], displayPreferences);
 
       fullNameInput.value = profile.fullName || '';
       emailInput.value = profile.email || '';
       countryInput.value = profile.country || '';
-      streetInput.value = (profile.address && profile.address.street) || '';
-      cityInput.value = (profile.address && profile.address.city) || '';
-      zipcodeInput.value = (profile.address && profile.address.zipcode) || '';
+      streetInput.value = address.street || '';
+      cityInput.value = address.city || '';
+      stateInput.value = address.state || '';
+      zipcodeInput.value = address.zipcode || '';
       // no business fields for user profiles
       renderCheckboxes(profile.preferences || []);
     }
@@ -537,11 +563,17 @@
     }
 
     async function saveProfile(profile) {
+      const address = profile.address || {};
+      const geocode = profile.geocode || address.geocode || null;
       const request = {
         fullName: profile.fullName,
         email: profile.email,
         country: profile.country,
-        address: profile.address || {},
+        address: {
+          ...address,
+          geocode: geocode || address.geocode || null,
+        },
+        geocode: geocode || address.geocode || null,
         preferences: profile.preferences,
       };
 
@@ -603,6 +635,7 @@
         address: {
           street: streetInput.value.trim(),
           city: cityInput.value.trim(),
+          state: stateInput.value.trim(),
           zipcode: zipcodeInput.value.trim(),
         },
         preferences: updatedPreferences,

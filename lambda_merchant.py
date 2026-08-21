@@ -2,6 +2,7 @@ import os
 import json
 import boto3
 from datetime import datetime
+from decimal import Decimal
 
 
 dynamodb = boto3.resource("dynamodb")
@@ -97,6 +98,16 @@ def save_merchant(event):
     state = (address.get("state") or "").strip()
     # geocode may be provided under address.geocode or top-level body.geocode
     geocode = address.get("geocode") or body.get("geocode") or None
+
+    # helper to convert floats to Decimal for DynamoDB
+    def convert_floats_to_decimal(obj):
+        if isinstance(obj, float):
+            return Decimal(str(obj))
+        if isinstance(obj, dict):
+            return {k: convert_floats_to_decimal(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [convert_floats_to_decimal(v) for v in obj]
+        return obj
     if not street or not city or not zipcode:
         return response(400, "Please provide complete address for merchant.")
 
@@ -125,6 +136,7 @@ def save_merchant(event):
     # include geocode at top-level for easier reading, and also keep under address if provided
     if geocode and isinstance(geocode, dict):
         # accept {lat:..., lng:...} or {lat:..., lng:..., source:...}
+        geocode = convert_floats_to_decimal(geocode)
         item["address"]["geocode"] = geocode
         item["geocode"] = geocode
 

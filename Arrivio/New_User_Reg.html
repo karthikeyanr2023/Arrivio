@@ -397,6 +397,7 @@
 
   <script>
     const API_URL = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com/signup';
+    const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
     const form = document.getElementById('signupForm');
     const message = document.getElementById('message');
 
@@ -456,23 +457,50 @@
       setLoading(true);
 
       try {
+        const addressText = [streetAddress, city, state, zipcode, country].filter(Boolean).join(', ');
+        const geocodeResponse = await fetch(GEOCODE_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ addressText }),
+        });
+
+        const geocodeData = await geocodeResponse.json().catch(() => ({}));
+
+        if (!geocodeResponse.ok) {
+          const errorText = geocodeData.error || geocodeData.message || 'Unable to resolve the address location.';
+          throw new Error(errorText);
+        }
+
+        const lat = geocodeData.lat ?? (geocodeData.geometry && geocodeData.geometry.location && geocodeData.geometry.location.lat);
+        const lng = geocodeData.lng ?? (geocodeData.geometry && geocodeData.geometry.location && geocodeData.geometry.location.lng);
+
+        if (lat === undefined || lng === undefined || lat === null || lng === null) {
+          throw new Error('Geocode succeeded but no coordinates were returned.');
+        }
+
+        const geocode = { lat: Number(lat), lng: Number(lng), source: geocodeData.source || 'geocode_api' };
+
+        const payload = {
+          fullName,
+          email,
+          country,
+          address: {
+            street: streetAddress,
+            city,
+            state,
+            zipcode,
+            geocode,
+          },
+          geocode,
+          preferences,
+        };
+
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            fullName,
-            email,
-            country,
-            address: {
-              street: streetAddress,
-              city,
-              state,
-              zipcode,
-            },
-            preferences,
-          }),
+          body: JSON.stringify(payload),
         });
 
         const result = await response.json();
@@ -483,15 +511,14 @@
           return;
         }
 
-        const profileData = { fullName, email, country, address: { street: streetAddress, city, state, zipcode }, preferences };
-        localStorage.setItem('pendingProfile', JSON.stringify(profileData));
+        localStorage.setItem('pendingProfile', JSON.stringify(payload));
         showMessage('Profile saved successfully! Redirecting to confirmation...', false);
         setTimeout(() => {
           window.location.href = `Confirm_Profile.html?email=${encodeURIComponent(email)}`;
         }, 1200);
       } catch (error) {
         console.error('Signup submission failed:', error);
-        showMessage('Network error saving your profile. Please try again.', true);
+        showMessage(error.message || 'Network error saving your profile. Please try again.', true);
         setLoading(false);
       }
     });
