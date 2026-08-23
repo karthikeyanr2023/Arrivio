@@ -344,7 +344,7 @@
           </div>
         </div>
 
-        <div class="field-grid">
+        <div class="field-grid" id="stateField" style="display:none;">
           <div class="field">
             <label for="state">State / Region</label>
             <select id="state" name="state">
@@ -511,6 +511,23 @@
       const message = document.getElementById('message');
       const closeModalButton = document.getElementById('closeModal');
       const saveModalButton = document.getElementById('saveModal');
+      const countryElement = document.getElementById('country');
+      const stateElement = document.getElementById('state');
+      const stateField = document.getElementById('stateField');
+
+      function toggleStateField() {
+        const isUs = (countryElement.value || '').trim() === 'United States';
+        if (stateField) stateField.style.display = isUs ? '' : 'none';
+        if (stateElement) {
+          stateElement.disabled = !isUs;
+          if (!isUs) stateElement.value = '';
+        }
+      }
+
+      if (countryElement) {
+        countryElement.addEventListener('change', toggleStateField);
+        toggleStateField();
+      }
 
       const businessOptions = {
         Food: ['Asian', 'Italian', 'Street Food', 'Desserts', 'Coffee Shops'],
@@ -583,9 +600,11 @@
           markInvalidField(cityElement, 'Please enter your city before adding business details.');
           return false;
         }
-        if (!stateElement || !stateElement.value.trim()) {
-          markInvalidField(stateElement || streetElement, 'Please enter your state / region before adding business details.');
-          return false;
+        if (country === 'United States') {
+          if (!stateElement || !stateElement.value.trim()) {
+            markInvalidField(stateElement || streetElement, 'Please select your state / region before adding business details.');
+            return false;
+          }
         }
         if (!pin) {
           markInvalidField(pinElement, 'Please enter your pin code before adding business details.');
@@ -789,9 +808,13 @@
             showMessage('Please enter your street address.', true);
             return;
           }
-          if (!state) {
-            showMessage('Please enter your state / region.', true);
-            return;
+          if (country === 'United States') {
+            if (!state) {
+              showMessage('Please select your state / region.', true);
+              return;
+            }
+          } else {
+            state = '';
           }
           if (!city) {
             showMessage('Please enter your city.', true);

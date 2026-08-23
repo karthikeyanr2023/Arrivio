@@ -308,7 +308,7 @@
               <label for="zipcode">Zip code</label>
               <input type="text" id="zipcode" name="zipcode" placeholder="Zip code" />
             </div>
-            <div class="field">
+            <div class="field" id="stateField" style="display:none;">
               <label for="state">State / Region</label>
               <select id="state" name="state">
                 <option value="">Select state / region</option>
@@ -452,6 +452,22 @@
     const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
     const form = document.getElementById('signupForm');
     const message = document.getElementById('message');
+    const countrySelect = document.getElementById('country');
+    const stateField = document.getElementById('stateField');
+    const stateSelect = document.getElementById('state');
+
+    function toggleStateField() {
+      const isUs = (countrySelect.value || '').trim() === 'United States';
+      const isHidden = !isUs;
+      if (stateField) stateField.style.display = isHidden ? 'none' : '';
+      if (stateSelect) {
+        stateSelect.disabled = isHidden;
+        if (isHidden) stateSelect.value = '';
+      }
+    }
+
+    countrySelect.addEventListener('change', toggleStateField);
+    toggleStateField();
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
@@ -491,9 +507,13 @@
         return;
       }
 
-      if (!state) {
-        showMessage('Please enter your state / region.', true);
-        return;
+      if (country === 'United States') {
+        if (!state) {
+          showMessage('Please select your state / region.', true);
+          return;
+        }
+      } else {
+        state = '';
       }
 
       if (!zipcode) {

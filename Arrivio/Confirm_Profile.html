@@ -324,7 +324,7 @@
           <label for="cityInput">City</label>
           <input type="text" id="cityInput" name="city" placeholder="City" />
         </div>
-        <div class="form-row">
+        <div class="form-row" id="stateField" style="display:none;">
           <label for="stateInput">State / Region</label>
           <select id="stateInput" name="state">
             <option value="">Select state / region</option>
@@ -453,6 +453,7 @@
     const streetInput = document.getElementById('streetInput');
     const cityInput = document.getElementById('cityInput');
     const stateInput = document.getElementById('stateInput');
+    const stateField = document.getElementById('stateField');
     const zipcodeInput = document.getElementById('zipcodeInput');
     
     const editPreferences = document.getElementById('editPreferences');
@@ -571,6 +572,17 @@
       });
     }
 
+    function toggleStateField() {
+      const isUs = (countryInput.value || '').trim() === 'United States';
+      if (stateField) stateField.style.display = isUs ? '' : 'none';
+      if (stateInput) {
+        stateInput.disabled = !isUs;
+        if (!isUs) stateInput.value = '';
+      }
+    }
+
+    countryInput.addEventListener('change', toggleStateField);
+
     function populateProfile(profile) {
       currentProfile = profile;
       const address = profile.address || {};
@@ -591,8 +603,9 @@
       countryInput.value = profile.country || '';
       streetInput.value = address.street || '';
       cityInput.value = address.city || '';
-      stateInput.value = address.state || '';
+      stateInput.value = profile.country === 'United States' ? (address.state || '') : '';
       zipcodeInput.value = address.zipcode || '';
+      toggleStateField();
       // no business fields for user profiles
       renderCheckboxes(profile.preferences || []);
     }
@@ -752,6 +765,15 @@
       if (!updatedProfile.country) {
         showMessage('Please select your country.', true);
         return;
+      }
+
+      if (updatedProfile.country === 'United States') {
+        if (!updatedProfile.address.state) {
+          showMessage('Please select your state / region.', true);
+          return;
+        }
+      } else {
+        updatedProfile.address.state = '';
       }
 
       // Preferences are optional.
