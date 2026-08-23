@@ -637,7 +637,7 @@
 
       const stateVal = stateInput ? (stateInput.value || '').trim() : ((currentProfile.address && currentProfile.address.state) || '').trim();
       if (!stateVal) {
-        showMessage('Please enter the state/region before confirming.', true);
+        showMessage('Please select the state/region before confirming.', true);
         return;
       }
 
@@ -744,7 +744,7 @@
         return;
       }
       if (!updatedProfile.address.state) {
-        showMessage('Please enter your state / region.', true);
+        showMessage('Please select your state / region.', true);
         return;
       }
       if (!updatedProfile.businessDetails.title) {
