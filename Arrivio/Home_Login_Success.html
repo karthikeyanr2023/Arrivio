@@ -25,6 +25,18 @@
     .value{flex:1}
     .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
     .small{font-size:0.95rem;color:var(--muted)}
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(27, 107, 214, 0.2);
+      border-top-color: #1b6bd6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
     @media (max-width:800px){.layout{grid-template-columns:1fr}.sidebar{order:2}}
   </style>
 </head>
@@ -58,6 +70,16 @@
               </div>
               <div id="destinationMsg" class="small" style="margin-top:8px;display:none;color:var(--muted)"></div>
               <div id="destCoords" class="small" style="margin-top:6px;display:none;color:var(--muted)"></div>
+
+              <div id="distanceStatus" style="display:none;margin-top:12px;color:var(--accent);font-weight:700;">
+                <span class="spinner"></span>
+                Calculating nearby merchant distances...
+              </div>
+
+              <div id="merchantDistanceResults" style="display:none;margin-top:16px;">
+                <h3 style="margin:0 0 8px; font-size:1.1rem;">Nearby merchants</h3>
+                <ul id="merchantDistanceList" style="margin:0;padding-left:18px;display:grid;gap:8px;"></ul>
+              </div>
             </div>
           </section>
 
@@ -189,8 +211,34 @@
     const destMsg = document.getElementById('destinationMsg');
     const destCoords = document.getElementById('destCoords');
 
-    // TODO: set this to your deployed API Gateway invoke URL
+    // Geocode API URL
     const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
+    const DISTANCE_API_URL = 'https://g6gvqy5ue6.execute-api.us-east-1.amazonaws.com/distance';
+
+    function showDistanceStatus(show) {
+      const status = document.getElementById('distanceStatus');
+      if (status) status.style.display = show ? 'block' : 'none';
+    }
+
+    function renderMerchantDistances(items) {
+      const list = document.getElementById('merchantDistanceList');
+      const results = document.getElementById('merchantDistanceResults');
+      if (!list || !results) return;
+
+      if (!items || !items.length) {
+        list.innerHTML = '<li>No nearby merchant geolocations were found.</li>';
+        results.style.display = 'block';
+        return;
+      }
+
+      list.innerHTML = items.map(item => {
+        const name = item.merchantName || 'Merchant';
+        const distance = Number(item.distanceKm || 0).toFixed(2);
+        return `<li><strong>${escapeHtml(name)}</strong> — ${distance} km away</li>`;
+      }).join('');
+
+      results.style.display = 'block';
+    }
 
     // Do not persist raw destination across refresh/login; always start empty
     try{ destInput.value = ''; }catch(e){}
@@ -203,9 +251,6 @@
       destMsg.textContent = 'Resolving destination...';
       destCoords.style.display = 'none';
 
-      // Do not persist raw destination across refresh/login
-
-      // Call geocode API (send both address and addressText—handler will prefer addressText for plain addresses)
       try{
         const resp = await fetch(GEOCODE_API_URL, {
           method: 'POST',
@@ -214,15 +259,46 @@
         });
         const j = await resp.json().catch(()=>({}));
         if(!resp.ok){ destMsg.textContent = 'Geocode failed: ' + (j.error || resp.statusText || resp.status); return; }
+
         const lat = j.lat || (j.geometry && j.geometry.location && j.geometry.location.lat);
         const lng = j.lng || (j.geometry && j.geometry.location && j.geometry.location.lng);
+
         if(lat && lng){
-          try{ localStorage.setItem('destination_geocode', JSON.stringify({lat,lng})); }catch(e){}
+          const destination = { lat: Number(lat), lng: Number(lng) };
+          try{ localStorage.setItem('destination_geocode', JSON.stringify(destination)); }catch(e){}
           try{ localStorage.setItem('destination_geocode_details', JSON.stringify(j)); }catch(e){}
+
           destMsg.textContent = 'Destination resolved.';
           destCoords.style.display = '';
           const src = j.source || (j.result && j.result.source) || '';
           destCoords.textContent = 'Lat: ' + Number(lat).toFixed(6) + ', Lng: ' + Number(lng).toFixed(6) + (src ? ('  (source: ' + src + ')') : '');
+
+          showDistanceStatus(true);
+          setTimeout(async () => {
+            try {
+              const distanceResp = await fetch(DISTANCE_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lat: destination.lat, lng: destination.lng })
+              });
+
+              const distanceData = await distanceResp.json().catch(() => ({}));
+              if (!distanceResp.ok) {
+                throw new Error(distanceData.message || 'Distance calculation failed');
+              }
+
+              renderMerchantDistances(distanceData.data || []);
+            } catch (err) {
+              const list = document.getElementById('merchantDistanceList');
+              const results = document.getElementById('merchantDistanceResults');
+              if (list && results) {
+                list.innerHTML = '<li>Error: ' + escapeHtml(err.message || 'Unable to calculate merchant distances.') + '</li>';
+                results.style.display = 'block';
+              }
+            } finally {
+              showDistanceStatus(false);
+            }
+          }, 2000);
         }else{
           destMsg.textContent = 'Geocode succeeded but no coordinates returned.';
         }
