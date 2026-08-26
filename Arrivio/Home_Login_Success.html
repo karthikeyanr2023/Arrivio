@@ -233,8 +233,8 @@
 
       list.innerHTML = items.map(item => {
         const name = item.merchantName || 'Merchant';
-        const distance = Number(item.distanceKm || 0).toFixed(2);
-        return `<li><strong>${escapeHtml(name)}</strong> — ${distance} km away</li>`;
+        const miles = Number(item.distanceMiles ?? item.distanceKm * 0.621371 ?? 0).toFixed(2);
+        return `<li><strong>${escapeHtml(name)}</strong> — ${miles} miles away</li>`;
       }).join('');
 
       results.style.display = 'block';
