@@ -76,6 +76,18 @@
                 Calculating nearby merchant distances...
               </div>
 
+              <div id="proximityBlock" style="margin-top:14px;display:none;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span class="small" style="font-weight:700;color:var(--muted);">Proximity</span>
+                  <div id="proximityOptions" style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="proximity-option active" data-mile="5" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:var(--accent);color:#fff;cursor:pointer;font-weight:700;">5 miles</button>
+                    <button type="button" class="proximity-option" data-mile="10" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">10 miles</button>
+                    <button type="button" class="proximity-option" data-mile="50" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">50 miles</button>
+                    <button type="button" class="proximity-option" data-mile="100" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">100 miles</button>
+                  </div>
+                </div>
+              </div>
+
               <div id="merchantDistanceResults" style="display:none;margin-top:16px;">
                 <h3 style="margin:0 0 8px; font-size:1.1rem;">Nearby merchants</h3>
                 <ul id="merchantDistanceList" style="margin:0;padding-left:18px;display:grid;gap:8px;"></ul>
@@ -220,25 +232,81 @@
       if (status) status.style.display = show ? 'block' : 'none';
     }
 
+    let merchantDistanceData = [];
+    let selectedProximityMiles = 5;
+
+    function getStoredProximity() {
+      try {
+        const stored = Number(localStorage.getItem('arrivioProximityMiles'));
+        return Number.isFinite(stored) && stored > 0 ? stored : 5;
+      } catch (e) {
+        return 5;
+      }
+    }
+
+    function saveProximitySelection(value) {
+      try { localStorage.setItem('arrivioProximityMiles', String(value)); } catch (e) {}
+    }
+
+    function applyProximitySelection(value) {
+      selectedProximityMiles = Number(value || 5);
+      saveProximitySelection(selectedProximityMiles);
+      document.querySelectorAll('.proximity-option').forEach(el => {
+        const isActive = Number(el.dataset.mile) === selectedProximityMiles;
+        el.classList.toggle('active', isActive);
+        el.style.background = isActive ? 'var(--accent)' : '#fff';
+        el.style.color = isActive ? '#fff' : 'var(--accent)';
+      });
+      if (merchantDistanceData.length) {
+        renderMerchantDistances(merchantDistanceData);
+      }
+    }
+
+    function parseDistanceMiles(item) {
+      const directMiles = Number(item && (item.distanceMiles ?? item.distance_miles));
+      if (!Number.isNaN(directMiles) && directMiles >= 0) return directMiles;
+
+      const kmValue = Number(item && (item.distanceKm ?? item.distance_km));
+      if (!Number.isNaN(kmValue) && kmValue >= 0) return kmValue * 0.621371;
+
+      return Number.MAX_SAFE_INTEGER;
+    }
+
     function renderMerchantDistances(items) {
       const list = document.getElementById('merchantDistanceList');
       const results = document.getElementById('merchantDistanceResults');
+      const proximityBlock = document.getElementById('proximityBlock');
       if (!list || !results) return;
 
-      if (!items || !items.length) {
-        list.innerHTML = '<li>No nearby merchant geolocations were found.</li>';
+      merchantDistanceData = Array.isArray(items) ? items : [];
+      if (proximityBlock) proximityBlock.style.display = merchantDistanceData.length ? 'block' : 'none';
+
+      const limit = selectedProximityMiles || 100;
+      const filteredItems = merchantDistanceData.filter(item => parseDistanceMiles(item) <= limit);
+
+      if (!filteredItems.length) {
+        list.innerHTML = '<li>No nearby merchant geolocations were found within ' + limit + ' miles.</li>';
         results.style.display = 'block';
         return;
       }
 
-      list.innerHTML = items.map(item => {
+      list.innerHTML = filteredItems.map(item => {
         const name = item.merchantName || 'Merchant';
-        const miles = Number(item.distanceMiles ?? item.distanceKm * 0.621371 ?? 0).toFixed(2);
+        const miles = parseDistanceMiles(item).toFixed(2);
         return `<li><strong>${escapeHtml(name)}</strong> — ${miles} miles away</li>`;
       }).join('');
 
       results.style.display = 'block';
     }
+
+    document.querySelectorAll('.proximity-option').forEach(button => {
+      button.addEventListener('click', () => {
+        applyProximitySelection(button.dataset.mile || 5);
+      });
+    });
+
+    selectedProximityMiles = getStoredProximity();
+    applyProximitySelection(selectedProximityMiles);
 
     // Do not persist raw destination across refresh/login; always start empty
     try{ destInput.value = ''; }catch(e){}
@@ -246,6 +314,11 @@
     setDestBtn.addEventListener('click', async () => {
       const v = destInput.value.trim();
       if(!v){ destMsg.textContent = 'Please enter a destination.'; destMsg.style.display = ''; return; }
+
+      // Reset the stored proximity only when the destination changes; otherwise keep the user's current selection
+      try { localStorage.removeItem('arrivioProximityMiles'); } catch (e) {}
+      selectedProximityMiles = 5;
+      applyProximitySelection(selectedProximityMiles);
 
       destMsg.style.display = '';
       destMsg.textContent = 'Resolving destination...';
