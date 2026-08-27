@@ -627,7 +627,6 @@
       businessTitleInput.value = (profile.businessDetails && profile.businessDetails.title) || '';
       businessTypeInput.value = (profile.businessDetails && profile.businessDetails.type) || '';
       renderBusinessOptions(businessTypeInput.value, profile.businessDetails?.option || '');
-      const businessInformation = profile.businessDetails && (profile.businessDetails.businessInformation || profile.businessDetails.notes || '');
       businessNotesInput.value = businessInformation;
       renderPOIInputs(profile.businessDetails?.pois || []);
       businessLicenseInput.value = (profile.businessDetails && profile.businessDetails.licenseNumber) || '';
