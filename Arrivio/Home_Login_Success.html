@@ -273,6 +273,26 @@
       }
     }
 
+    function normalizeApiResponse(payload) {
+      if (!payload) return {};
+      if (typeof payload === 'string') {
+        try { return JSON.parse(payload); } catch (e) { return {}; }
+      }
+      if (payload.body && typeof payload.body === 'string') {
+        try { return { ...payload, ...JSON.parse(payload.body) }; } catch (e) { return payload; }
+      }
+      if (payload.body && typeof payload.body === 'object') {
+        return { ...payload, ...payload.body };
+      }
+      return payload;
+    }
+
+    function getMerchantDisplayName(item) {
+      const businessTitle = item && (item.businessTitle || item.business_title || item.businessDetails?.title || item.businessDetails?.businessTitle || item.businessName || item.business_name);
+      const merchantName = item && (item.merchantName || item.merchant_name || item.name || item.fullName || item.username || 'Merchant');
+      return businessTitle || merchantName;
+    }
+
     function parseDistanceMiles(item) {
       const directMiles = Number(item && (item.distanceMiles ?? item.distance_miles));
       if (!Number.isNaN(directMiles) && directMiles >= 0) return directMiles;
@@ -302,9 +322,9 @@
       }
 
       list.innerHTML = filteredItems.map(item => {
-        const businessTitle = item.businessTitle || item.businessDetails?.title || item.merchantName || item.fullName || 'Merchant';
+        const name = getMerchantDisplayName(item);
         const miles = parseDistanceMiles(item).toFixed(2);
-        return `<li><strong>${escapeHtml(businessTitle)}</strong> — ${miles} miles away</li>`;
+        return `<li><strong>${escapeHtml(name)}</strong> — ${miles} miles away</li>`;
       }).join('');
 
       results.style.display = 'block';
@@ -341,11 +361,12 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ address: v, addressText: v })
         });
-        const j = await resp.json().catch(()=>({}));
-        if(!resp.ok){ destMsg.textContent = 'Geocode failed: ' + (j.error || resp.statusText || resp.status); return; }
+        const rawJson = await resp.json().catch(()=>({}));
+        const j = normalizeApiResponse(rawJson);
+        if(!resp.ok){ destMsg.textContent = 'Geocode failed: ' + (j.error || j.message || resp.statusText || resp.status); return; }
 
-        const lat = j.lat || (j.geometry && j.geometry.location && j.geometry.location.lat);
-        const lng = j.lng || (j.geometry && j.geometry.location && j.geometry.location.lng);
+        const lat = j.lat ?? j.result?.lat ?? j.body?.lat ?? (j.geometry && j.geometry.location && j.geometry.location.lat);
+        const lng = j.lng ?? j.result?.lng ?? j.body?.lng ?? (j.geometry && j.geometry.location && j.geometry.location.lng);
 
         if(lat && lng){
           const destination = { lat: Number(lat), lng: Number(lng) };
@@ -354,7 +375,7 @@
 
           destMsg.textContent = 'Destination resolved.';
           destCoords.style.display = '';
-          const src = j.source || (j.result && j.result.source) || '';
+          const src = j.source || j.result?.source || j.body?.source || '';
           destCoords.textContent = 'Lat: ' + Number(lat).toFixed(6) + ', Lng: ' + Number(lng).toFixed(6) + (src ? ('  (source: ' + src + ')') : '');
 
           showDistanceStatus(true);
