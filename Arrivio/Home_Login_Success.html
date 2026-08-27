@@ -302,9 +302,9 @@
       }
 
       list.innerHTML = filteredItems.map(item => {
-        const name = item.merchantName || 'Merchant';
+        const businessTitle = item.businessTitle || item.businessDetails?.title || item.merchantName || item.fullName || 'Merchant';
         const miles = parseDistanceMiles(item).toFixed(2);
-        return `<li><strong>${escapeHtml(name)}</strong> — ${miles} miles away</li>`;
+        return `<li><strong>${escapeHtml(businessTitle)}</strong> — ${miles} miles away</li>`;
       }).join('');
 
       results.style.display = 'block';
