@@ -351,7 +351,7 @@
         <div class="details-row"><strong>Business title</strong><span>${escapeHtml(merchant.businessDetails?.title)}</span></div>
         <div class="details-row"><strong>Business type</strong><span>${escapeHtml(merchant.businessDetails?.type)}</span></div>
         <div class="details-row"><strong>Business option</strong><span>${escapeHtml(merchant.businessDetails?.option)}</span></div>
-        <div class="details-row"><strong>Notes</strong><span>${escapeHtml(merchant.businessDetails?.notes)}</span></div>
+        <div class="details-row"><strong>Business information</strong><span>${escapeHtml(merchant.businessDetails?.businessInformation || merchant.businessDetails?.notes || '')}</span></div>
         <div class="details-row"><strong>POIs</strong><span>${escapeHtml((merchant.businessDetails?.pois || []).join(', ') || 'None')}</span></div>
         <div class="details-row"><strong>License</strong><span>${escapeHtml(merchant.businessDetails?.licenseNumber)}</span></div>
         <div class="details-row"><strong>Tax ID</strong><span>${escapeHtml(merchant.businessDetails?.taxIdNumber)}</span></div>

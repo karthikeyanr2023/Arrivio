@@ -114,6 +114,10 @@ def save_merchant(event):
     title = (business.get("title") or "").strip()
     btype = (business.get("type") or "").strip()
     option = (business.get("option") or "").strip()
+    business_information = (business.get("businessInformation") or business.get("notes") or "").strip()
+    if business_information:
+        business["businessInformation"] = business_information
+        business["notes"] = business_information
     # allow license and tax id to be optional, but include if present
 
     if not title or not btype or not option:

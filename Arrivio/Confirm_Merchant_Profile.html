@@ -295,7 +295,7 @@
           <strong id="displayBusinessOption"></strong>
         </div>
         <div class="profile-row">
-          <span>Notes</span>
+          <span>Business information</span>
           <strong id="displayBusinessNotes"></strong>
         </div>
         <div class="profile-row">
@@ -438,8 +438,8 @@
           <input type="text" id="businessTaxIdInput" name="businessTaxId" placeholder="Enter tax / GST / VAT ID" />
         </div>
         <div class="form-row">
-          <label for="businessNotesInput">Notes</label>
-          <textarea id="businessNotesInput" rows="3" placeholder="Add notes about this business"></textarea>
+          <label for="businessNotesInput">Business information</label>
+          <textarea id="businessNotesInput" rows="3" placeholder="Add business information" required></textarea>
         </div>
         <div class="form-row">
           <label>Nearby POIs</label>
@@ -611,7 +611,8 @@
       displayBusinessTitle.textContent = (profile.businessDetails && profile.businessDetails.title) || '';
       displayBusinessType.textContent = (profile.businessDetails && profile.businessDetails.type) || '';
       displayBusinessOption.textContent = (profile.businessDetails && profile.businessDetails.option) || '';
-      displayBusinessNotes.textContent = (profile.businessDetails && profile.businessDetails.notes) || '';
+      const businessInformation = profile.businessDetails && (profile.businessDetails.businessInformation || profile.businessDetails.notes || '');
+      displayBusinessNotes.textContent = businessInformation;
       renderPOIs(profile.businessDetails?.pois || []);
       displayBusinessLicense.textContent = (profile.businessDetails && profile.businessDetails.licenseNumber) || '';
       displayBusinessTaxId.textContent = (profile.businessDetails && profile.businessDetails.taxIdNumber) || '';
@@ -626,7 +627,8 @@
       businessTitleInput.value = (profile.businessDetails && profile.businessDetails.title) || '';
       businessTypeInput.value = (profile.businessDetails && profile.businessDetails.type) || '';
       renderBusinessOptions(businessTypeInput.value, profile.businessDetails?.option || '');
-      businessNotesInput.value = (profile.businessDetails && profile.businessDetails.notes) || '';
+      const businessInformation = profile.businessDetails && (profile.businessDetails.businessInformation || profile.businessDetails.notes || '');
+      businessNotesInput.value = businessInformation;
       renderPOIInputs(profile.businessDetails?.pois || []);
       businessLicenseInput.value = (profile.businessDetails && profile.businessDetails.licenseNumber) || '';
       businessTaxIdInput.value = (profile.businessDetails && profile.businessDetails.taxIdNumber) || '';
@@ -781,6 +783,7 @@
           type: businessTypeInput.value,
           option: businessOptionInput.value,
           notes: businessNotesInput.value.trim(),
+          businessInformation: businessNotesInput.value.trim(),
           pois: Array.from(document.querySelectorAll('.merchant-poi-input')).map(input => input.value.trim()).filter(Boolean),
           licenseNumber: businessLicenseInput.value.trim(),
           taxIdNumber: businessTaxIdInput.value.trim(),

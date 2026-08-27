@@ -483,8 +483,8 @@
           <input type="text" id="businessTaxId" placeholder="Enter tax / GST / VAT ID" />
         </div>
         <div class="field full-width">
-          <label for="modalNotes">Notes</label>
-          <textarea id="modalNotes" rows="3" placeholder="Add notes about this business"></textarea>
+          <label for="modalNotes">Business information</label>
+          <textarea id="modalNotes" rows="3" placeholder="Enter business information" required></textarea>
         </div>
       </div>
       <div class="modal-actions">
@@ -693,6 +693,13 @@
             .map(input => input.value.trim())
             .filter(Boolean);
 
+          if (!notes) {
+            showMessage('Please enter business information before saving the merchant details.', true);
+            resetSaveState();
+            modalNotes.focus();
+            return;
+          }
+
           const fullName = document.getElementById('fullName').value.trim();
           const email = document.getElementById('email').value.trim();
           const country = document.getElementById('country').value;
@@ -755,7 +762,16 @@
             return;
           }
 
-          businessDetails = { title, type, option, notes, pois, licenseNumber, taxIdNumber };
+          businessDetails = {
+            title,
+            type,
+            option,
+            notes,
+            businessInformation: notes,
+            pois,
+            licenseNumber,
+            taxIdNumber,
+          };
           const merchantProfileData = {
             fullName,
             email,
@@ -771,7 +787,7 @@
           localStorage.setItem('pendingProfile', JSON.stringify(merchantProfileData));
 
           const poiText = pois.length ? ` POIs: ${pois.join(', ')}.` : '';
-          businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Notes: ${notes || 'None'}.${poiText}`;
+          businessSummaryText.textContent = `Business title: ${title}. Type: ${type} → ${option}. Business information: ${notes || 'None'}.${poiText}`;
           businessSummary.style.display = 'grid';
           closeModal();
           showMessage('Merchant profile saved successfully. Redirecting to confirmation...', false);
