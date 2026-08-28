@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Add Deals</title>
+  <style>
+    :root{--bg:#f6fbff;--card:#fff;--muted:#5b6b86;--accent:#1b6bd6;--surface:#f8fbff;--success:#1e7f4b;--danger:#d9485f}
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,system-ui,Arial;background:var(--bg);color:#102a44}
+    .wrap{max-width:900px;margin:24px auto;padding:20px}
+    .card{background:var(--card);border:1px solid rgba(16,42,68,0.06);border-radius:16px;padding:22px;box-shadow:0 8px 20px rgba(16,42,68,0.04)}
+    h2{margin:0 0 8px;font-size:1.5rem} .sub{color:var(--muted);margin-bottom:18px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    label{font-weight:700;color:var(--muted);font-size:0.9rem}
+    input, select, textarea{width:100%;padding:10px 12px;border:1px solid rgba(16,42,68,0.12);border-radius:10px;background:#fff;font:inherit;color:#102a44}
+    textarea{min-height:110px;resize:vertical}
+    .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+    button{padding:11px 18px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .save{background:var(--accent);color:#fff}
+    .cancel{background:#eef5ff;color:var(--accent)}
+    .state-box{margin-top:16px;padding:14px;border-radius:10px;background:var(--surface)}
+    .state-box strong{display:block;margin-bottom:6px}
+    @media (max-width:700px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>Add Deal</h2>
+      <div class="sub">Create a merchant deal for customers in eligible states.</div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="dealTitle">Deal title</label>
+          <input id="dealTitle" type="text" placeholder="e.g. Weekend Special" />
+        </div>
+        <div class="field">
+          <label for="dealCategory">Category</label>
+          <select id="dealCategory">
+            <option value="">Select category</option>
+            <option>Dining</option>
+            <option>Retail</option>
+            <option>Fitness</option>
+            <option>Wellness</option>
+            <option>Travel</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="dealFrom">From</label>
+          <input id="dealFrom" type="date" />
+        </div>
+        <div class="field">
+          <label for="dealTo">To</label>
+          <input id="dealTo" type="date" />
+        </div>
+        <div class="field" style="grid-column:1 / -1;">
+          <label for="dealDetails">Deal details</label>
+          <textarea id="dealDetails" placeholder="Describe the deal details, terms, and restrictions"></textarea>
+        </div>
+        <div class="field">
+          <label for="dealAgeLimit">Age limit</label>
+          <input id="dealAgeLimit" type="number" min="0" placeholder="e.g. 18" />
+        </div>
+        <div class="field">
+          <label for="dealState">State</label>
+          <select id="dealState"></select>
+        </div>
+      </div>
+
+      <div class="state-box">
+        <strong>Merchant location logic</strong>
+        <div id="dealStateNote">State list will be populated based on your merchant location.</div>
+      </div>
+
+      <div class="actions">
+        <button class="cancel" type="button" onclick="window.close()">Cancel</button>
+        <button class="save" type="button" id="saveDealBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const merchantState = params.get('merchantState') || '';
+    const allStates = [
+      'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'
+    ];
+
+    const stateSelect = document.getElementById('dealState');
+    const stateNote = document.getElementById('dealStateNote');
+
+    function populateStates() {
+      const selected = merchantState && allStates.includes(merchantState) ? merchantState : allStates[0];
+      stateSelect.innerHTML = allStates.map(s => `<option value="${s}" ${s === selected ? 'selected' : ''}>${s}</option>`).join('');
+      stateNote.textContent = merchantState ? `Merchant location detected: ${merchantState}. Matching state options were loaded.` : 'No merchant state detected; using default state list.';
+    }
+
+    document.getElementById('saveDealBtn').addEventListener('click', () => {
+      const payload = {
+        title: document.getElementById('dealTitle').value.trim(),
+        category: document.getElementById('dealCategory').value,
+        from: document.getElementById('dealFrom').value,
+        to: document.getElementById('dealTo').value,
+        details: document.getElementById('dealDetails').value.trim(),
+        ageLimit: document.getElementById('dealAgeLimit').value,
+        state: stateSelect.value
+      };
+
+      if (!payload.title || !payload.from || !payload.to || !payload.details) {
+        alert('Please complete title, dates, and deal details before saving.');
+        return;
+      }
+
+      localStorage.setItem('arrivio_saved_deal', JSON.stringify(payload));
+      alert('Deal saved successfully.');
+      window.close();
+    });
+
+    populateStates();
+  </script>
+</body>
+</html>
