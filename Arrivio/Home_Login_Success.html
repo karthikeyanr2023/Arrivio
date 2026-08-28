@@ -121,6 +121,7 @@
     const params = new URLSearchParams(location.search);
     const username = params.get('username') || '';
     const type = params.get('type') || 'user';
+    let effectiveType = type || 'user';
 
     const USER_LIST_URL = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com/DEV/users';
     const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
@@ -161,8 +162,8 @@
     function openFeatureWindow(featureName) {
       const params = new URLSearchParams({
         username: username || '',
-        type: type || 'merchant',
-        merchantState: (type === 'merchant' ? (localStorage.getItem('arrivioCurrentMerchantState') || '') : '')
+        type: effectiveType || 'merchant',
+        merchantState: (effectiveType === 'merchant' ? (localStorage.getItem('arrivioCurrentMerchantState') || '') : '')
       });
       const pageName = featureName === 'deals' ? 'Add_Deals.html' : 'Add_Coupons.html';
       const popup = window.open(`${pageName}?${params.toString()}`, featureName, 'width=1000,height=820,resizable=yes,scrollbars=yes');
@@ -170,6 +171,26 @@
     }
 
     function escapeHtml(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    async function isMerchantAccount() {
+      const lookup = (username || '').toLowerCase();
+      if (!lookup) return false;
+      try {
+        const list = await loadList(MERCHANT_LIST_URL);
+        return list.some(p => ((p.email || '').toLowerCase() === lookup) || ((p.fullName || '').toLowerCase() === lookup) || ((p.username || '').toLowerCase() === lookup));
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function resolveEffectiveType() {
+      if (type === 'merchant' || type === 'user') {
+        effectiveType = type;
+        return effectiveType;
+      }
+      effectiveType = (await isMerchantAccount()) ? 'merchant' : 'user';
+      return effectiveType;
+    }
 
     async function loadList(url){
       try{
@@ -184,7 +205,8 @@
       profileContent.innerHTML = '<p class="small">Loading profile...</p>';
       const lookup = (username||'').toLowerCase();
       let list = [];
-      if(type === 'user') list = await loadList(USER_LIST_URL);
+      await resolveEffectiveType();
+      if(effectiveType === 'user') list = await loadList(USER_LIST_URL);
       else list = await loadList(MERCHANT_LIST_URL);
 
       const profile = list.find(p => ((p.email||'').toLowerCase()===lookup) || ((p.fullName||'').toLowerCase()===lookup));
@@ -197,9 +219,9 @@
       }
 
       welcomeTitle.textContent = 'Welcome, ' + (profile.fullName || profile.email || '');
-      welcomeSubtitle.textContent = type === 'user' ? 'You are signed in as a user.' : 'You are signed in as a merchant.';
+      welcomeSubtitle.textContent = effectiveType === 'user' ? 'You are signed in as a user.' : 'You are signed in as a merchant.';
 
-      if (type === 'merchant' && profile.address?.state) {
+      if (effectiveType === 'merchant' && profile.address?.state) {
         try { localStorage.setItem('arrivioCurrentMerchantState', profile.address.state); } catch (e) {}
       }
 
@@ -219,7 +241,7 @@
           <div class="row"><div class="label">Street</div><div class="value">${escapeHtml(profile.address?.street)}</div></div>
           <div class="row"><div class="label">City</div><div class="value">${escapeHtml(profile.address?.city)}</div></div>
           <div class="row"><div class="label">Zip</div><div class="value">${escapeHtml(profile.address?.zipcode)}</div></div>
-          ${type==='merchant' ? `
+          ${effectiveType==='merchant' ? `
             <div class="row"><div class="label">Business title</div><div class="value">${escapeHtml(profile.businessDetails?.title)}</div></div>
             <div class="row"><div class="label">Business type</div><div class="value">${escapeHtml(profile.businessDetails?.type)}</div></div>
             <div class="row"><div class="label">Business option</div><div class="value">${escapeHtml(profile.businessDetails?.option)}</div></div>
@@ -236,25 +258,30 @@
     }
 
     // Initial
-    if(!username){
-      document.getElementById('errorMessage').textContent = 'No username provided. Redirecting to login...';
-      errorSection.style.display = '';
-      setTimeout(()=> location.href = 'Home_Login.html', 1800);
-    } else {
+    async function initializeWelcomeFlow() {
+      if(!username){
+        document.getElementById('errorMessage').textContent = 'No username provided. Redirecting to login...';
+        errorSection.style.display = '';
+        setTimeout(()=> location.href = 'Home_Login.html', 1800);
+        return;
+      }
+
       welcomeTitle.textContent = 'Welcome, ' + escapeHtml(username);
       welcomeSubtitle.textContent = 'Signed in';
-      // If signed in as a merchant, hide the destination input and show profile below welcome
       const destinationBlock = document.getElementById('destinationBlock');
-      if (type === 'merchant') {
+      await resolveEffectiveType();
+
+      if (effectiveType === 'merchant') {
         if (destinationBlock) destinationBlock.style.display = 'none';
         if (merchantFeatureActions) merchantFeatureActions.style.display = 'block';
         if (addDealsBtn) addDealsBtn.addEventListener('click', () => openFeatureWindow('deals'));
         if (addCouponsBtn) addCouponsBtn.addEventListener('click', () => openFeatureWindow('coupons'));
         profileSection.style.display = '';
-        // render profile immediately
         renderProfile();
       }
     }
+
+    initializeWelcomeFlow();
 
     // Destination input handling (saves to localStorage and resolves geocode)
     const destInput = document.getElementById('destinationInput');
