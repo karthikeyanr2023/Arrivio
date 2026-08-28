@@ -89,8 +89,8 @@
               </div>
 
               <div id="merchantDistanceResults" style="display:none;margin-top:16px;">
-                <h3 style="margin:0 0 8px; font-size:1.1rem;">Nearby merchants</h3>
-                <ul id="merchantDistanceList" style="margin:0;padding-left:18px;display:grid;gap:8px;"></ul>
+                <h3 style="margin:0 0 10px; font-size:1.1rem;">Nearby merchants</h3>
+                <div id="merchantDistanceList" style="display:grid;gap:12px;"></div>
               </div>
             </div>
           </section>
@@ -293,6 +293,26 @@
       return businessTitle || merchantName;
     }
 
+    function getMerchantPhone(item) {
+      const phone = item && (item.phone || item.mobileNumber || item.contactNumber || item.businessDetails?.phone || item.businessDetails?.contactNumber || '');
+      return String(phone || '').trim();
+    }
+
+    function getMerchantAddressText(item) {
+      const address = item && (item.address || item.businessDetails?.address || {});
+      if (!address || typeof address !== 'object') return 'Address unavailable';
+
+      const parts = [
+        address.street,
+        address.city,
+        address.state,
+        address.zipcode,
+        address.country
+      ].filter(value => value !== undefined && value !== null && String(value).trim() !== '');
+
+      return parts.length ? parts.join(', ') : 'Address unavailable';
+    }
+
     function parseDistanceMiles(item) {
       const directMiles = Number(item && (item.distanceMiles ?? item.distance_miles));
       if (!Number.isNaN(directMiles) && directMiles >= 0) return directMiles;
@@ -324,7 +344,39 @@
       list.innerHTML = filteredItems.map(item => {
         const name = getMerchantDisplayName(item);
         const miles = parseDistanceMiles(item).toFixed(2);
-        return `<li><strong>${escapeHtml(name)}</strong> — ${miles} miles away</li>`;
+        const phone = getMerchantPhone(item);
+        const addressText = getMerchantAddressText(item);
+
+        return `
+          <div style="
+            background:linear-gradient(180deg,#ffffff,#f6faff);
+            border:1px solid rgba(16,42,68,0.08);
+            border-radius:12px;
+            padding:14px 14px 12px;
+            box-shadow:0 4px 10px rgba(16,42,68,0.04);
+          ">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+              <div>
+                <div style="font-size:1rem;font-weight:800;color:#102a44;">${escapeHtml(name)}</div>
+                <div style="margin-top:4px;color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
+              </div>
+              <div style="
+                background:rgba(27,107,214,0.1);
+                color:var(--accent);
+                border-radius:999px;
+                padding:6px 10px;
+                font-weight:800;
+                font-size:0.82rem;
+                white-space:nowrap;
+              ">${miles} miles</div>
+            </div>
+
+            <div style="margin-top:10px;display:flex;align-items:flex-start;gap:8px;color:var(--muted);font-size:0.9rem;line-height:1.5;">
+              <span style="font-size:1rem;">📍</span>
+              <span>${escapeHtml(addressText)}</span>
+            </div>
+          </div>
+        `;
       }).join('');
 
       results.style.display = 'block';
@@ -388,11 +440,19 @@
               });
 
               const distanceData = await distanceResp.json().catch(() => ({}));
+              const parsedDistanceData = normalizeApiResponse(distanceData);
+
               if (!distanceResp.ok) {
-                throw new Error(distanceData.message || 'Distance calculation failed');
+                throw new Error(parsedDistanceData.message || 'Distance calculation failed');
               }
 
-              renderMerchantDistances(distanceData.data || []);
+              const nearbyMerchants = Array.isArray(parsedDistanceData.data)
+                ? parsedDistanceData.data
+                : Array.isArray(parsedDistanceData)
+                  ? parsedDistanceData
+                  : [];
+
+              renderMerchantDistances(nearbyMerchants);
             } catch (err) {
               const list = document.getElementById('merchantDistanceList');
               const results = document.getElementById('merchantDistanceResults');
