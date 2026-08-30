@@ -88,13 +88,6 @@
                 </div>
               </div>
 
-              <div id="merchantFeatureActions" style="display:none;margin-top:18px;">
-                <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                  <button id="addDealsBtn" type="button" style="padding:11px 16px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;">Add Deals</button>
-                  <button id="addCouponsBtn" type="button" style="padding:11px 16px;border-radius:10px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);font-weight:700;cursor:pointer;">Add Coupons</button>
-                </div>
-              </div>
-
               <div id="merchantDistanceResults" style="display:none;margin-top:16px;">
                 <h3 style="margin:0 0 10px; font-size:1.1rem;">Nearby merchants</h3>
                 <div id="merchantDistanceList" style="display:grid;gap:12px;"></div>
@@ -135,9 +128,6 @@
     const welcomeTitle = document.getElementById('welcomeTitle');
     const welcomeSubtitle = document.getElementById('welcomeSubtitle');
     const profileContent = document.getElementById('profileContent');
-    const merchantFeatureActions = document.getElementById('merchantFeatureActions');
-    const addDealsBtn = document.getElementById('addDealsBtn');
-    const addCouponsBtn = document.getElementById('addCouponsBtn');
 
     navWelcome.addEventListener('click', () => showSection('welcome'));
     navProfile.addEventListener('click', () => showSection('profile'));
@@ -157,17 +147,6 @@
       profileSection.style.display = s === 'profile' ? '' : 'none';
       errorSection.style.display = 'none';
       if (s === 'profile') renderProfile();
-    }
-
-    function openFeatureWindow(featureName) {
-      const params = new URLSearchParams({
-        username: username || '',
-        type: effectiveType || 'merchant',
-        merchantState: (effectiveType === 'merchant' ? (localStorage.getItem('arrivioCurrentMerchantState') || '') : '')
-      });
-      const pageName = featureName === 'deals' ? 'Add_Deals.html' : 'Add_Coupons.html';
-      const popup = window.open(`${pageName}?${params.toString()}`, featureName, 'width=1000,height=820,resizable=yes,scrollbars=yes');
-      if (popup) popup.focus();
     }
 
     function escapeHtml(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -276,13 +255,8 @@
       if (destinationBlock) {
         destinationBlock.style.display = isMerchantSession ? 'none' : 'block';
       }
-      if (merchantFeatureActions) {
-        merchantFeatureActions.style.display = isMerchantSession ? 'block' : 'none';
-      }
 
       if (isMerchantSession) {
-        if (addDealsBtn) addDealsBtn.addEventListener('click', () => openFeatureWindow('deals'));
-        if (addCouponsBtn) addCouponsBtn.addEventListener('click', () => openFeatureWindow('coupons'));
         profileSection.style.display = '';
         renderProfile();
       }
