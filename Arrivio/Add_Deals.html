@@ -108,8 +108,9 @@
       stateNote.textContent = merchantState ? `Merchant location detected: ${merchantState}. Matching state options were loaded.` : 'No merchant state detected; using default state list.';
     }
 
-    document.getElementById('saveDealBtn').addEventListener('click', () => {
+    document.getElementById('saveDealBtn').addEventListener('click', async () => {
       const payload = {
+        merchantId: 'merchant-123',
         title: document.getElementById('dealTitle').value.trim(),
         category: document.getElementById('dealCategory').value,
         from: document.getElementById('dealFrom').value,
@@ -127,9 +128,23 @@
         return;
       }
 
-      localStorage.setItem('arrivio_saved_deal', JSON.stringify(payload));
-      alert('Deal saved successfully.');
-      window.close();
+      try {
+        const response = await fetch('https://ntiwthmtz2.execute-api.us-east-1.amazonaws.com/deals', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        console.log('Deal saved successfully:', result);
+        alert('Deal saved successfully.');
+        window.close();
+      } catch (error) {
+        console.error('Error saving deal:', error);
+        alert('There was an error saving the deal.');
+      }
     });
 
     populateStates();
