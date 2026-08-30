@@ -184,8 +184,9 @@
     }
 
     async function resolveEffectiveType() {
-      if (type === 'merchant' || type === 'user') {
-        effectiveType = type;
+      const normalizedType = String(type || '').toLowerCase();
+      if (normalizedType === 'merchant' || normalizedType === 'user') {
+        effectiveType = normalizedType;
         return effectiveType;
       }
       effectiveType = (await isMerchantAccount()) ? 'merchant' : 'user';
@@ -271,9 +272,15 @@
       const destinationBlock = document.getElementById('destinationBlock');
       await resolveEffectiveType();
 
-      if (effectiveType === 'merchant') {
-        if (destinationBlock) destinationBlock.style.display = 'none';
-        if (merchantFeatureActions) merchantFeatureActions.style.display = 'block';
+      const isMerchantSession = effectiveType === 'merchant';
+      if (destinationBlock) {
+        destinationBlock.style.display = isMerchantSession ? 'none' : 'block';
+      }
+      if (merchantFeatureActions) {
+        merchantFeatureActions.style.display = isMerchantSession ? 'block' : 'none';
+      }
+
+      if (isMerchantSession) {
         if (addDealsBtn) addDealsBtn.addEventListener('click', () => openFeatureWindow('deals'));
         if (addCouponsBtn) addCouponsBtn.addEventListener('click', () => openFeatureWindow('coupons'));
         profileSection.style.display = '';
