@@ -24,6 +24,10 @@
     .value{flex:1}
     .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
     .small{font-size:0.95rem;color:var(--muted)}
+    .merchant-summary{margin-top:18px;padding:18px;border-radius:12px;background:var(--surface);border:1px solid rgba(16,42,68,0.06)}
+    .merchant-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .merchant-action-btn{padding:11px 16px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+    .merchant-action-btn.secondary{background:#fff;color:var(--accent);border:1px solid rgba(16,42,68,0.12)}
     @media (max-width:800px){.layout{grid-template-columns:1fr}.sidebar{order:2}}
   </style>
 </head>
@@ -48,10 +52,18 @@
                 <p class="lead" id="welcomeSubtitle">Quick notes and shortcuts for your account</p>
               </div>
             </div>
+
+            <div id="merchantSummary" class="merchant-summary">
+              <p class="small">Loading merchant details...</p>
+            </div>
+
+            <div class="merchant-actions">
+              <button id="publishDealsBtn" class="merchant-action-btn" type="button">Publish Deals</button>
+              <button id="publishCouponsBtn" class="merchant-action-btn secondary" type="button">Publish Coupons</button>
+            </div>
           </section>
 
-          <section id="profileSection" style="display:block">
-            <h2>Profile</h2>
+          <section id="profileSection" style="display:none">
             <div id="profileContent">
               <p class="small">Loading profile...</p>
             </div>
@@ -80,6 +92,9 @@
     const welcomeTitle = document.getElementById('welcomeTitle');
     const welcomeSubtitle = document.getElementById('welcomeSubtitle');
     const profileContent = document.getElementById('profileContent');
+    const merchantSummary = document.getElementById('merchantSummary');
+    const publishDealsBtn = document.getElementById('publishDealsBtn');
+    const publishCouponsBtn = document.getElementById('publishCouponsBtn');
 
     navWelcome.addEventListener('click', () => showSection('welcome'));
     navProfile.addEventListener('click', () => showSection('profile'));
@@ -97,6 +112,15 @@
     }
 
     function escapeHtml(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    function openFeatureWindow(featureName) {
+      const pageName = featureName === 'deals' ? './Add_Deals.html' : './Add_Coupons.html';
+      const popupUrl = new URL(pageName, window.location.href);
+      popupUrl.searchParams.set('username', username || '');
+      popupUrl.searchParams.set('type', 'merchant');
+      const popup = window.open(popupUrl.toString(), featureName, 'width=1000,height=820,resizable=yes,scrollbars=yes');
+      if (popup) popup.focus();
+    }
 
     async function loadList(url){
       try {
@@ -135,16 +159,28 @@
       const displayLng = profile.geocode?.lng || profile.address?.geocode?.lng || '';
       const businessInfo = profile.businessDetails && (profile.businessDetails.businessInformation || profile.businessDetails.notes || '');
       const businessPOIs = Array.isArray(profile.businessDetails?.pois) ? profile.businessDetails.pois.join(', ') : 'None';
+      const phone = profile.phone || profile.mobileNumber || profile.contactNumber || profile.businessDetails?.phone || profile.businessDetails?.contactNumber || 'Not available';
+      const addressText = [profile.address?.street, profile.address?.city, profile.address?.state, profile.address?.zipcode, profile.address?.country].filter(Boolean).join(', ') || 'Address not available';
+
+      merchantSummary.innerHTML = `
+        <div class="profile">
+          <div class="row"><div class="label">Business</div><div class="value">${escapeHtml(profile.businessDetails?.title || profile.fullName)}</div></div>
+          <div class="row"><div class="label">Email</div><div class="value">${escapeHtml(profile.email || 'Not available')}</div></div>
+          <div class="row"><div class="label">Phone</div><div class="value">${escapeHtml(phone)}</div></div>
+          <div class="row"><div class="label">Address</div><div class="value">${escapeHtml(addressText)}</div></div>
+          <div class="row"><div class="label">Business info</div><div class="value">${escapeHtml(businessInfo || 'Not available')}</div></div>
+          <div class="row"><div class="label">State</div><div class="value">${escapeHtml(displayState || 'Not available')}</div></div>
+          <div class="row"><div class="label">Latitude</div><div class="value">${escapeHtml(displayLat || 'Pending')}</div></div>
+          <div class="row"><div class="label">Longitude</div><div class="value">${escapeHtml(displayLng || 'Pending')}</div></div>
+        </div>
+      `;
 
       profileContent.innerHTML = `
         <div class="profile">
           <div class="row"><div class="label">Name</div><div class="value">${escapeHtml(profile.fullName)}</div></div>
           <div class="row"><div class="label">Email</div><div class="value">${escapeHtml(profile.email)}</div></div>
-          <div class="row"><div class="label">Country</div><div class="value">${escapeHtml(profile.country)}</div></div>
-          <div class="row"><div class="label">State</div><div class="value">${escapeHtml(displayState)}</div></div>
-          <div class="row"><div class="label">Street</div><div class="value">${escapeHtml(profile.address?.street)}</div></div>
-          <div class="row"><div class="label">City</div><div class="value">${escapeHtml(profile.address?.city)}</div></div>
-          <div class="row"><div class="label">Zip</div><div class="value">${escapeHtml(profile.address?.zipcode)}</div></div>
+          <div class="row"><div class="label">Phone</div><div class="value">${escapeHtml(phone)}</div></div>
+          <div class="row"><div class="label">Address</div><div class="value">${escapeHtml(addressText)}</div></div>
           <div class="row"><div class="label">Business title</div><div class="value">${escapeHtml(profile.businessDetails?.title)}</div></div>
           <div class="row"><div class="label">Business type</div><div class="value">${escapeHtml(profile.businessDetails?.type)}</div></div>
           <div class="row"><div class="label">Business option</div><div class="value">${escapeHtml(profile.businessDetails?.option)}</div></div>
@@ -165,6 +201,9 @@
     } else {
       renderProfile();
     }
+
+    publishDealsBtn.addEventListener('click', () => openFeatureWindow('deals'));
+    publishCouponsBtn.addEventListener('click', () => openFeatureWindow('coupons'));
   </script>
 </body>
 </html>
