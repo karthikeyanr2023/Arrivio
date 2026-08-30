@@ -54,16 +54,28 @@
           <input id="couponTo" type="date" />
         </div>
         <div class="field" style="grid-column:1 / -1;">
+          <label for="couponAddress">Applicable address</label>
+          <input id="couponAddress" type="text" placeholder="e.g. 210 Harbor Avenue" />
+        </div>
+        <div class="field">
+          <label for="couponCity">City</label>
+          <input id="couponCity" type="text" placeholder="e.g. Seattle" />
+        </div>
+        <div class="field">
+          <label for="couponPin">PIN / ZIP code</label>
+          <input id="couponPin" type="text" placeholder="e.g. 98101" />
+        </div>
+        <div class="field">
+          <label for="couponState">State</label>
+          <select id="couponState"></select>
+        </div>
+        <div class="field" style="grid-column:1 / -1;">
           <label for="couponDetails">Coupon details</label>
           <textarea id="couponDetails" placeholder="Add discount terms, usage notes, and restrictions"></textarea>
         </div>
         <div class="field">
           <label for="couponAgeLimit">Age limit</label>
           <input id="couponAgeLimit" type="number" min="0" placeholder="e.g. 21" />
-        </div>
-        <div class="field">
-          <label for="couponState">State</label>
-          <select id="couponState"></select>
         </div>
       </div>
 
@@ -101,13 +113,16 @@
         type: document.getElementById('couponType').value,
         from: document.getElementById('couponFrom').value,
         to: document.getElementById('couponTo').value,
+        address: document.getElementById('couponAddress').value.trim(),
+        city: document.getElementById('couponCity').value.trim(),
+        pin: document.getElementById('couponPin').value.trim(),
         details: document.getElementById('couponDetails').value.trim(),
         ageLimit: document.getElementById('couponAgeLimit').value,
         state: stateSelect.value
       };
 
-      if (!payload.title || !payload.from || !payload.to || !payload.details) {
-        alert('Please complete title, dates, and coupon details before saving.');
+      if (!payload.title || !payload.from || !payload.to || !payload.address || !payload.city || !payload.pin || !payload.state || !payload.details) {
+        alert('Please complete the coupon title, dates, applicable address, city, PIN, state, and coupon details before saving.');
         return;
       }
 

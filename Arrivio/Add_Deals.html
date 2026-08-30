@@ -55,16 +55,28 @@
           <input id="dealTo" type="date" />
         </div>
         <div class="field" style="grid-column:1 / -1;">
+          <label for="dealAddress">Applicable address</label>
+          <input id="dealAddress" type="text" placeholder="e.g. 145 Market Street, Suite 210" />
+        </div>
+        <div class="field">
+          <label for="dealCity">City</label>
+          <input id="dealCity" type="text" placeholder="e.g. Austin" />
+        </div>
+        <div class="field">
+          <label for="dealPin">PIN / ZIP code</label>
+          <input id="dealPin" type="text" placeholder="e.g. 78701" />
+        </div>
+        <div class="field">
+          <label for="dealState">State</label>
+          <select id="dealState"></select>
+        </div>
+        <div class="field" style="grid-column:1 / -1;">
           <label for="dealDetails">Deal details</label>
           <textarea id="dealDetails" placeholder="Describe the deal details, terms, and restrictions"></textarea>
         </div>
         <div class="field">
           <label for="dealAgeLimit">Age limit</label>
           <input id="dealAgeLimit" type="number" min="0" placeholder="e.g. 18" />
-        </div>
-        <div class="field">
-          <label for="dealState">State</label>
-          <select id="dealState"></select>
         </div>
       </div>
 
@@ -102,13 +114,16 @@
         category: document.getElementById('dealCategory').value,
         from: document.getElementById('dealFrom').value,
         to: document.getElementById('dealTo').value,
+        address: document.getElementById('dealAddress').value.trim(),
+        city: document.getElementById('dealCity').value.trim(),
+        pin: document.getElementById('dealPin').value.trim(),
         details: document.getElementById('dealDetails').value.trim(),
         ageLimit: document.getElementById('dealAgeLimit').value,
         state: stateSelect.value
       };
 
-      if (!payload.title || !payload.from || !payload.to || !payload.details) {
-        alert('Please complete title, dates, and deal details before saving.');
+      if (!payload.title || !payload.from || !payload.to || !payload.address || !payload.city || !payload.pin || !payload.state || !payload.details) {
+        alert('Please complete the deal title, dates, applicable address, city, PIN, state, and deal details before saving.');
         return;
       }
 
