@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arrivio — Merchant Home</title>
+  <style>
+    :root{--bg:#f6fbff;--card:#fff;--muted:#5b6b86;--accent:#1b6bd6;--surface:#f8fbff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Segoe UI,system-ui,Arial;background:var(--bg);color:#102a44}
+    .shell{max-width:1040px;margin:28px auto;padding:20px}
+    .layout{display:grid;grid-template-columns:240px 1fr;gap:20px}
+    .sidebar{background:var(--card);border-radius:12px;padding:18px;border:1px solid rgba(16,42,68,0.06)}
+    .nav{display:grid;gap:8px;margin-top:12px}
+    .nav button{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:0;background:transparent;cursor:pointer;font-weight:700;color:var(--accent)}
+    .nav button.active{background:linear-gradient(90deg,rgba(27,107,214,0.08),#fff);}
+    .main{background:var(--card);border-radius:12px;padding:20px;border:1px solid rgba(16,42,68,0.06)}
+    .welcome{display:flex;justify-content:space-between;align-items:center}
+    h1{margin:0 0 8px;font-size:1.6rem}
+    p.lead{margin:0;color:var(--muted)}
+    .profile{margin-top:18px;display:grid;gap:10px}
+    .row{display:flex;gap:12px}
+    .label{width:140px;color:var(--muted);font-weight:700}
+    .value{flex:1}
+    .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
+    .small{font-size:0.95rem;color:var(--muted)}
+    @media (max-width:800px){.layout{grid-template-columns:1fr}.sidebar{order:2}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand"><strong>Arrivio</strong></div>
+        <div class="nav" id="nav">
+          <button id="navWelcome" class="active">Welcome</button>
+          <button id="navProfile">Profile</button>
+          <button id="navLogout">Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div id="content">
+          <section id="welcomeSection">
+            <div class="welcome">
+              <div>
+                <h1 id="welcomeTitle">Welcome</h1>
+                <p class="lead" id="welcomeSubtitle">Quick notes and shortcuts for your account</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="profileSection" style="display:block">
+            <h2>Profile</h2>
+            <div id="profileContent">
+              <p class="small">Loading profile...</p>
+            </div>
+          </section>
+
+          <section id="errorSection" style="display:none">
+            <div class="error" id="errorMessage">Profile not found.</div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const username = params.get('username') || '';
+
+    const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
+
+    const navWelcome = document.getElementById('navWelcome');
+    const navProfile = document.getElementById('navProfile');
+    const navLogout = document.getElementById('navLogout');
+    const welcomeSection = document.getElementById('welcomeSection');
+    const profileSection = document.getElementById('profileSection');
+    const errorSection = document.getElementById('errorSection');
+    const welcomeTitle = document.getElementById('welcomeTitle');
+    const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+    const profileContent = document.getElementById('profileContent');
+
+    navWelcome.addEventListener('click', () => showSection('welcome'));
+    navProfile.addEventListener('click', () => showSection('profile'));
+    navLogout.addEventListener('click', () => {
+      localStorage.removeItem('arrivioCurrentMerchantState');
+      location.href = new URL('./Home_Login.html', window.location.href).toString();
+    });
+
+    function showSection(s) {
+      navWelcome.classList.toggle('active', s === 'welcome');
+      navProfile.classList.toggle('active', s === 'profile');
+      welcomeSection.style.display = s === 'welcome' ? '' : 'none';
+      profileSection.style.display = s === 'profile' ? '' : 'none';
+      errorSection.style.display = 'none';
+    }
+
+    function escapeHtml(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    async function loadList(url){
+      try {
+        const r = await fetch(url);
+        if(!r.ok) return [];
+        const j = await r.json().catch(()=>({}));
+        return Array.isArray(j.data) ? j.data : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function renderProfile(){
+      profileContent.innerHTML = '<p class="small">Loading profile...</p>';
+      const lookup = (username || '').toLowerCase();
+      const list = await loadList(MERCHANT_LIST_URL);
+      const profile = list.find(p => ((p.email||'').toLowerCase() === lookup) || ((p.fullName||'').toLowerCase() === lookup));
+
+      if(!profile){
+        profileContent.innerHTML = '';
+        document.getElementById('errorMessage').textContent = 'Profile not found for: ' + escapeHtml(username);
+        errorSection.style.display = '';
+        profileSection.style.display = 'none';
+        return;
+      }
+
+      welcomeTitle.textContent = 'Welcome, ' + (profile.fullName || profile.email || '');
+      welcomeSubtitle.textContent = 'You are signed in as a merchant.';
+
+      if (profile.address?.state) {
+        try { localStorage.setItem('arrivioCurrentMerchantState', profile.address.state); } catch (e) {}
+      }
+
+      const displayState = profile.address?.state || '';
+      const displayLat = profile.geocode?.lat || profile.address?.geocode?.lat || '';
+      const displayLng = profile.geocode?.lng || profile.address?.geocode?.lng || '';
+      const businessInfo = profile.businessDetails && (profile.businessDetails.businessInformation || profile.businessDetails.notes || '');
+      const businessPOIs = Array.isArray(profile.businessDetails?.pois) ? profile.businessDetails.pois.join(', ') : 'None';
+
+      profileContent.innerHTML = `
+        <div class="profile">
+          <div class="row"><div class="label">Name</div><div class="value">${escapeHtml(profile.fullName)}</div></div>
+          <div class="row"><div class="label">Email</div><div class="value">${escapeHtml(profile.email)}</div></div>
+          <div class="row"><div class="label">Country</div><div class="value">${escapeHtml(profile.country)}</div></div>
+          <div class="row"><div class="label">State</div><div class="value">${escapeHtml(displayState)}</div></div>
+          <div class="row"><div class="label">Street</div><div class="value">${escapeHtml(profile.address?.street)}</div></div>
+          <div class="row"><div class="label">City</div><div class="value">${escapeHtml(profile.address?.city)}</div></div>
+          <div class="row"><div class="label">Zip</div><div class="value">${escapeHtml(profile.address?.zipcode)}</div></div>
+          <div class="row"><div class="label">Business title</div><div class="value">${escapeHtml(profile.businessDetails?.title)}</div></div>
+          <div class="row"><div class="label">Business type</div><div class="value">${escapeHtml(profile.businessDetails?.type)}</div></div>
+          <div class="row"><div class="label">Business option</div><div class="value">${escapeHtml(profile.businessDetails?.option)}</div></div>
+          <div class="row"><div class="label">Business information</div><div class="value">${escapeHtml(businessInfo)}</div></div>
+          <div class="row"><div class="label">POIs</div><div class="value">${escapeHtml(businessPOIs)}</div></div>
+          <div class="row"><div class="label">License</div><div class="value">${escapeHtml(profile.businessDetails?.licenseNumber)}</div></div>
+          <div class="row"><div class="label">Tax ID</div><div class="value">${escapeHtml(profile.businessDetails?.taxIdNumber)}</div></div>
+          <div class="row"><div class="label">Latitude</div><div class="value">${escapeHtml(displayLat || 'Pending')}</div></div>
+          <div class="row"><div class="label">Longitude</div><div class="value">${escapeHtml(displayLng || 'Pending')}</div></div>
+        </div>
+      `;
+    }
+
+    if (!username) {
+      document.getElementById('errorMessage').textContent = 'No username provided. Redirecting to login...';
+      errorSection.style.display = '';
+      setTimeout(() => location.href = new URL('./Home_Login.html', window.location.href).toString(), 1800);
+    } else {
+      renderProfile();
+    }
+  </script>
+</body>
+</html>

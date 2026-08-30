@@ -365,13 +365,13 @@
         const lookup = username.toLowerCase();
         const foundUser = users.find(u => (u.email || '').toLowerCase() === lookup || (u.fullName || '').toLowerCase() === lookup);
         if (foundUser) {
-          window.location.href = `Home_Login_Success.html?username=${encodeURIComponent(username)}&type=user`;
+          window.location.href = new URL(`./User_Home.html?username=${encodeURIComponent(username)}&type=user`, window.location.href).toString();
           return;
         }
 
         const foundMerchant = merchants.find(m => (m.email || '').toLowerCase() === lookup || (m.fullName || '').toLowerCase() === lookup);
         if (foundMerchant) {
-          window.location.href = `Home_Login_Success.html?username=${encodeURIComponent(username)}&type=merchant`;
+          window.location.href = new URL(`./Merchant_Home.html?username=${encodeURIComponent(username)}&type=merchant`, window.location.href).toString();
           return;
         }
 

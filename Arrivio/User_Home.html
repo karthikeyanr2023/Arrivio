@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arrivio — User Home</title>
+  <style>
+    :root{--bg:#f6fbff;--card:#fff;--muted:#5b6b86;--accent:#1b6bd6;--surface:#f8fbff}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Segoe UI,system-ui,Arial;background:var(--bg);color:#102a44}
+    .shell{max-width:1040px;margin:28px auto;padding:20px}
+    .layout{display:grid;grid-template-columns:240px 1fr;gap:20px}
+    .sidebar{background:var(--card);border-radius:12px;padding:18px;border:1px solid rgba(16,42,68,0.06)}
+    .nav{display:grid;gap:8px;margin-top:12px}
+    .nav button{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:0;background:transparent;cursor:pointer;font-weight:700;color:var(--accent)}
+    .nav button.active{background:linear-gradient(90deg,rgba(27,107,214,0.08),#fff);}
+    .main{background:var(--card);border-radius:12px;padding:20px;border:1px solid rgba(16,42,68,0.06)}
+    .welcome{display:flex;justify-content:space-between;align-items:center}
+    h1{margin:0 0 8px;font-size:1.6rem}
+    p.lead{margin:0;color:var(--muted)}
+    .profile{margin-top:18px;display:grid;gap:10px}
+    .row{display:flex;gap:12px}
+    .label{width:140px;color:var(--muted);font-weight:700}
+    .value{flex:1}
+    .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
+    .small{font-size:0.95rem;color:var(--muted)}
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(27, 107, 214, 0.2);
+      border-top-color: #1b6bd6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width:800px){.layout{grid-template-columns:1fr}.sidebar{order:2}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand"><strong>Arrivio</strong></div>
+        <div class="nav" id="nav">
+          <button id="navWelcome" class="active">Welcome</button>
+          <button id="navProfile">Profile</button>
+          <button id="navLogout">Logout</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div id="content">
+          <section id="welcomeSection">
+            <div class="welcome">
+              <div>
+                <h1 id="welcomeTitle">Welcome</h1>
+                <p class="lead" id="welcomeSubtitle">Quick notes and shortcuts for your account</p>
+              </div>
+            </div>
+
+            <div id="destinationBlock" style="margin-top:14px">
+              <label for="destinationInput" class="small" style="font-weight:700;display:block;margin-bottom:6px">Destination</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input id="destinationInput" type="text" placeholder="Enter destination" style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(16,42,68,0.08)" />
+                <button id="setDestinationBtn" style="padding:10px 14px;border-radius:8px;background:var(--accent);color:#fff;border:0;cursor:pointer">Set</button>
+              </div>
+              <div id="destinationMsg" class="small" style="margin-top:8px;display:none;color:var(--muted)"></div>
+              <div id="destCoords" class="small" style="margin-top:6px;display:none;color:var(--muted)"></div>
+
+              <div id="distanceStatus" style="display:none;margin-top:12px;color:var(--accent);font-weight:700;">
+                <span class="spinner"></span>
+                Calculating nearby merchant distances...
+              </div>
+
+              <div id="proximityBlock" style="margin-top:14px;display:none;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span class="small" style="font-weight:700;color:var(--muted);">Proximity</span>
+                  <div id="proximityOptions" style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="proximity-option active" data-mile="5" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:var(--accent);color:#fff;cursor:pointer;font-weight:700;">5 miles</button>
+                    <button type="button" class="proximity-option" data-mile="10" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">10 miles</button>
+                    <button type="button" class="proximity-option" data-mile="50" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">50 miles</button>
+                    <button type="button" class="proximity-option" data-mile="100" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">100 miles</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="merchantDistanceResults" style="display:none;margin-top:16px;">
+                <h3 style="margin:0 0 8px; font-size:1.1rem;">Nearby merchants</h3>
+                <ul id="merchantDistanceList" style="margin:0;padding-left:18px;display:grid;gap:8px;"></ul>
+              </div>
+            </div>
+          </section>
+
+          <section id="profileSection" style="display:none">
+            <h2>Profile</h2>
+            <div id="profileContent">
+              <p class="small">Loading profile...</p>
+            </div>
+          </section>
+
+          <section id="errorSection" style="display:none">
+            <div class="error" id="errorMessage">Profile not found.</div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const username = params.get('username') || '';
+
+    const USER_LIST_URL = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com/DEV/users';
+    const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
+    const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
+    const DISTANCE_API_URL = 'https://g6gvqy5ue6.execute-api.us-east-1.amazonaws.com/distance';
+
+    const navWelcome = document.getElementById('navWelcome');
+    const navProfile = document.getElementById('navProfile');
+    const navLogout = document.getElementById('navLogout');
+    const welcomeSection = document.getElementById('welcomeSection');
+    const profileSection = document.getElementById('profileSection');
+    const errorSection = document.getElementById('errorSection');
+    const welcomeTitle = document.getElementById('welcomeTitle');
+    const welcomeSubtitle = document.getElementById('welcomeSubtitle');
+    const profileContent = document.getElementById('profileContent');
+    const destInput = document.getElementById('destinationInput');
+    const setDestBtn = document.getElementById('setDestinationBtn');
+    const destMsg = document.getElementById('destinationMsg');
+    const destCoords = document.getElementById('destCoords');
+
+    navWelcome.addEventListener('click', () => showSection('welcome'));
+    navProfile.addEventListener('click', () => showSection('profile'));
+    navLogout.addEventListener('click', () => {
+      try { localStorage.removeItem('destination_geocode'); localStorage.removeItem('destination_geocode_details'); localStorage.removeItem('arrivioProximityMiles'); } catch (e) {}
+      location.href = new URL('./Home_Login.html', window.location.href).toString();
+    });
+
+    function showSection(s) {
+      navWelcome.classList.toggle('active', s === 'welcome');
+      navProfile.classList.toggle('active', s === 'profile');
+      welcomeSection.style.display = s === 'welcome' ? '' : 'none';
+      profileSection.style.display = s === 'profile' ? '' : 'none';
+      errorSection.style.display = 'none';
+      if (s === 'profile') renderProfile();
+    }
+
+    function escapeHtml(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    async function loadList(url){
+      try {
+        const r = await fetch(url);
+        if(!r.ok) return [];
+        const j = await r.json().catch(()=>({}));
+        return Array.isArray(j.data) ? j.data : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function renderProfile(){
+      profileContent.innerHTML = '<p class="small">Loading profile...</p>';
+      const lookup = (username || '').toLowerCase();
+      const list = await loadList(USER_LIST_URL);
+      const profile = list.find(p => ((p.email||'').toLowerCase() === lookup) || ((p.fullName||'').toLowerCase() === lookup));
+
+      if(!profile){
+        profileContent.innerHTML = '';
+        document.getElementById('errorMessage').textContent = 'Profile not found for: ' + escapeHtml(username);
+        errorSection.style.display = '';
+        profileSection.style.display = 'none';
+        return;
+      }
+
+      welcomeTitle.textContent = 'Welcome, ' + (profile.fullName || profile.email || '');
+      welcomeSubtitle.textContent = 'You are signed in as a user.';
+
+      const displayState = profile.address?.state || '';
+      const displayLat = profile.geocode?.lat || profile.address?.geocode?.lat || '';
+      const displayLng = profile.geocode?.lng || profile.address?.geocode?.lng || '';
+
+      profileContent.innerHTML = `
+        <div class="profile">
+          <div class="row"><div class="label">Name</div><div class="value">${escapeHtml(profile.fullName)}</div></div>
+          <div class="row"><div class="label">Email</div><div class="value">${escapeHtml(profile.email)}</div></div>
+          <div class="row"><div class="label">Country</div><div class="value">${escapeHtml(profile.country)}</div></div>
+          <div class="row"><div class="label">State</div><div class="value">${escapeHtml(displayState)}</div></div>
+          <div class="row"><div class="label">Street</div><div class="value">${escapeHtml(profile.address?.street)}</div></div>
+          <div class="row"><div class="label">City</div><div class="value">${escapeHtml(profile.address?.city)}</div></div>
+          <div class="row"><div class="label">Zip</div><div class="value">${escapeHtml(profile.address?.zipcode)}</div></div>
+          <div class="row"><div class="label">Preferences</div><div class="value">${escapeHtml((profile.preferences || []).join(', ') || 'None')}</div></div>
+          <div class="row"><div class="label">Latitude</div><div class="value">${escapeHtml(displayLat || 'Pending')}</div></div>
+          <div class="row"><div class="label">Longitude</div><div class="value">${escapeHtml(displayLng || 'Pending')}</div></div>
+        </div>
+      `;
+    }
+
+    function showDistanceStatus(show) {
+      const status = document.getElementById('distanceStatus');
+      if (status) status.style.display = show ? 'block' : 'none';
+    }
+
+    let merchantDistanceData = [];
+    let selectedProximityMiles = 5;
+
+    function getStoredProximity() {
+      try {
+        const stored = Number(localStorage.getItem('arrivioProximityMiles'));
+        return Number.isFinite(stored) && stored > 0 ? stored : 5;
+      } catch (e) { return 5; }
+    }
+
+    function saveProximitySelection(value) {
+      try { localStorage.setItem('arrivioProximityMiles', String(value)); } catch (e) {}
+    }
+
+    function applyProximitySelection(value) {
+      selectedProximityMiles = Number(value || 5);
+      saveProximitySelection(selectedProximityMiles);
+      document.querySelectorAll('.proximity-option').forEach(el => {
+        const isActive = Number(el.dataset.mile) === selectedProximityMiles;
+        el.classList.toggle('active', isActive);
+        el.style.background = isActive ? 'var(--accent)' : '#fff';
+        el.style.color = isActive ? '#fff' : 'var(--accent)';
+      });
+      if (merchantDistanceData.length) {
+        renderMerchantDistances(merchantDistanceData);
+      }
+    }
+
+    function normalizeApiResponse(payload) {
+      if (!payload) return {};
+      if (typeof payload === 'string') {
+        try { return JSON.parse(payload); } catch (e) { return {}; }
+      }
+      if (payload.body && typeof payload.body === 'string') {
+        try { return { ...payload, ...JSON.parse(payload.body) }; } catch (e) { return payload; }
+      }
+      if (payload.body && typeof payload.body === 'object') {
+        return { ...payload, ...payload.body };
+      }
+      return payload;
+    }
+
+    function getMerchantDisplayName(item) {
+      const businessTitle = item && (item.businessTitle || item.business_title || item.businessDetails?.title || item.businessDetails?.businessTitle || item.businessName || item.business_name);
+      const merchantName = item && (item.merchantName || item.merchant_name || item.name || item.fullName || item.username || 'Merchant');
+      return businessTitle || merchantName;
+    }
+
+    function getMerchantPhone(item) {
+      const phone = item && (item.phone || item.mobileNumber || item.contactNumber || item.businessDetails?.phone || item.businessDetails?.contactNumber || '');
+      return String(phone || '').trim();
+    }
+
+    function getMerchantAddressText(item) {
+      const address = item && (item.address || item.businessDetails?.address || {});
+      if (!address || typeof address !== 'object') return 'Address unavailable';
+      const parts = [address.street, address.city, address.state, address.zipcode, address.country].filter(value => value !== undefined && value !== null && String(value).trim() !== '');
+      return parts.length ? parts.join(', ') : 'Address unavailable';
+    }
+
+    function parseDistanceMiles(item) {
+      const directMiles = Number(item && (item.distanceMiles ?? item.distance_miles));
+      if (!Number.isNaN(directMiles) && directMiles >= 0) return directMiles;
+
+      const kmValue = Number(item && (item.distanceKm ?? item.distance_km));
+      if (!Number.isNaN(kmValue) && kmValue >= 0) return kmValue * 0.621371;
+
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    function renderMerchantDistances(items) {
+      const list = document.getElementById('merchantDistanceList');
+      const results = document.getElementById('merchantDistanceResults');
+      const proximityBlock = document.getElementById('proximityBlock');
+      if (!list || !results) return;
+
+      merchantDistanceData = Array.isArray(items) ? items : [];
+      if (proximityBlock) proximityBlock.style.display = merchantDistanceData.length ? 'block' : 'none';
+
+      const limit = selectedProximityMiles || 100;
+      const filteredItems = merchantDistanceData.filter(item => parseDistanceMiles(item) <= limit);
+
+      if (!filteredItems.length) {
+        list.innerHTML = '<li>No nearby merchant geolocations were found within ' + limit + ' miles.</li>';
+        results.style.display = 'block';
+        return;
+      }
+
+      list.innerHTML = filteredItems.map(item => {
+        const name = getMerchantDisplayName(item);
+        const miles = parseDistanceMiles(item).toFixed(2);
+        const phone = getMerchantPhone(item);
+        const addressText = getMerchantAddressText(item);
+        return `<li><div style="font-weight:700;color:#102a44;">${escapeHtml(name)}</div><div style="color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div><div style="color:var(--muted);font-size:0.85rem;">${escapeHtml(addressText)}</div><div style="margin-top:4px;color:var(--accent);font-weight:700;">${miles} miles</div></li>`;
+      }).join('');
+
+      results.style.display = 'block';
+    }
+
+    document.querySelectorAll('.proximity-option').forEach(button => {
+      button.addEventListener('click', () => {
+        applyProximitySelection(button.dataset.mile || 5);
+      });
+    });
+
+    selectedProximityMiles = getStoredProximity();
+    applyProximitySelection(selectedProximityMiles);
+
+    try { destInput.value = ''; } catch (e) {}
+
+    if (!username) {
+      document.getElementById('errorMessage').textContent = 'No username provided. Redirecting to login...';
+      errorSection.style.display = '';
+      setTimeout(() => location.href = new URL('./Home_Login.html', window.location.href).toString(), 1800);
+    } else {
+      welcomeTitle.textContent = 'Welcome, ' + escapeHtml(username);
+      welcomeSubtitle.textContent = 'Signed in';
+    }
+
+    setDestBtn.addEventListener('click', async () => {
+      const v = destInput.value.trim();
+      if(!v){ destMsg.textContent = 'Please enter a destination.'; destMsg.style.display = ''; return; }
+
+      destMsg.style.display = '';
+      destMsg.textContent = 'Resolving destination...';
+      destCoords.style.display = 'none';
+
+      try {
+        const resp = await fetch(GEOCODE_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: v, addressText: v })
+        });
+
+        const rawJson = await resp.json().catch(()=>({}));
+        const j = normalizeApiResponse(rawJson);
+        if(!resp.ok){ destMsg.textContent = 'Geocode failed: ' + (j.error || j.message || resp.statusText || resp.status); return; }
+
+        const lat = j.lat ?? j.result?.lat ?? j.body?.lat ?? (j.geometry && j.geometry.location && j.geometry.location.lat);
+        const lng = j.lng ?? j.result?.lng ?? j.body?.lng ?? (j.geometry && j.geometry.location && j.geometry.location.lng);
+
+        if(lat && lng){
+          const destination = { lat: Number(lat), lng: Number(lng) };
+          try { localStorage.setItem('destination_geocode', JSON.stringify(destination)); } catch (e) {}
+          try { localStorage.setItem('destination_geocode_details', JSON.stringify(j)); } catch (e) {}
+
+          destMsg.textContent = 'Destination resolved.';
+          destCoords.style.display = '';
+          const src = j.source || j.result?.source || j.body?.source || '';
+          destCoords.textContent = 'Lat: ' + Number(lat).toFixed(6) + ', Lng: ' + Number(lng).toFixed(6) + (src ? ('  (source: ' + src + ')') : '');
+
+          showDistanceStatus(true);
+          setTimeout(async () => {
+            try {
+              const distanceResp = await fetch(DISTANCE_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lat: destination.lat, lng: destination.lng })
+              });
+
+              const distanceData = await distanceResp.json().catch(() => ({}));
+              const parsedDistanceData = normalizeApiResponse(distanceData);
+
+              if (!distanceResp.ok) {
+                throw new Error(parsedDistanceData.message || 'Distance calculation failed');
+              }
+
+              const nearbyMerchants = Array.isArray(parsedDistanceData.data)
+                ? parsedDistanceData.data
+                : Array.isArray(parsedDistanceData) ? parsedDistanceData : [];
+
+              renderMerchantDistances(nearbyMerchants);
+            } catch (err) {
+              const list = document.getElementById('merchantDistanceList');
+              const results = document.getElementById('merchantDistanceResults');
+              if (list && results) {
+                list.innerHTML = '<li>Error: ' + escapeHtml(err.message || 'Unable to calculate merchant distances.') + '</li>';
+                results.style.display = 'block';
+              }
+            } finally {
+              showDistanceStatus(false);
+            }
+          }, 2000);
+        } else {
+          destMsg.textContent = 'Geocode succeeded but no coordinates returned.';
+        }
+      } catch (err) {
+        destMsg.textContent = 'Geocode error: ' + (err.message || err);
+      }
+      setTimeout(() => destMsg.style.display = 'none', 5000);
+    });
+  </script>
+</body>
+</html>
