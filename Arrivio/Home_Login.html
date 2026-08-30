@@ -62,7 +62,7 @@
 
     .hero-header {
       position: relative;
-      padding: 44px 32px 28px;
+      padding: 34px 28px 18px;
       text-align: center;
       z-index: 1;
     }
@@ -71,13 +71,15 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 18px;
+      padding: 10px 14px;
       border-radius: 999px;
       background: rgba(77, 181, 255, 0.14);
       color: var(--primary);
       font-weight: 700;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
       border: 1px solid rgba(77, 181, 255, 0.22);
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
     }
 
     .brand-chip span {
@@ -90,17 +92,10 @@
 
     .hero-title {
       margin: 0;
-      font-size: clamp(2rem, 4vw, 2.7rem);
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
       letter-spacing: -0.04em;
-      line-height: 1.05;
-    }
-
-    .hero-description {
-      margin: 16px auto 0;
-      max-width: 360px;
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.7;
+      line-height: 1.1;
+      font-weight: 800;
     }
 
     .login-panel {
@@ -273,10 +268,9 @@
       <div class="hero-header">
         <div class="brand-chip">
           <span></span>
-          Arrivio Secure
+          Arrivio
         </div>
-        <h1 class="hero-title">Sign in to Arrivio</h1>
-        <p class="hero-description">Access your dashboard, manage projects, and keep your team connected with a secure login experience.</p>
+        <h1 class="hero-title">Welcome back</h1>
       </div>
 
       <div class="login-panel">
