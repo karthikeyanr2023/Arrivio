@@ -94,6 +94,8 @@
   <script>
     const params = new URLSearchParams(location.search);
     const merchantState = params.get('merchantState') || '';
+    const merchantId = params.get('username') || 'merchant-123';
+    const merchantName = params.get('merchantName') || merchantId;
     const allStates = [
       'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'
     ];
@@ -107,9 +109,22 @@
       stateNote.textContent = merchantState ? `Merchant location detected: ${merchantState}. Matching state options were loaded.` : 'No merchant state detected; using default state list.';
     }
 
+    function saveOfferList(storageKey, item) {
+      const key = `${storageKey}_${merchantId}`;
+      try {
+        const current = JSON.parse(localStorage.getItem(key) || '[]');
+        const list = Array.isArray(current) ? current : [];
+        list.push(item);
+        localStorage.setItem(key, JSON.stringify(list));
+      } catch (e) {
+        console.warn('Unable to persist the merchant coupon locally:', e);
+      }
+    }
+
     document.getElementById('saveCouponBtn').addEventListener('click', async () => {
       const payload = {
-        merchantId: 'merchant-123',
+        merchantId: merchantId,
+        merchantName: merchantName,
         title: document.getElementById('couponTitle').value.trim(),
         type: document.getElementById('couponType').value,
         from: document.getElementById('couponFrom').value,
@@ -138,6 +153,7 @@
 
         const result = await response.json();
         console.log('Coupon saved successfully:', result);
+        saveOfferList('arrivio_saved_coupon', payload);
         alert('Coupon saved successfully.');
         window.close();
       } catch (error) {

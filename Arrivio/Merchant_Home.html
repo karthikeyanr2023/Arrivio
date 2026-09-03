@@ -25,6 +25,15 @@
     .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
     .small{font-size:0.95rem;color:var(--muted)}
     .merchant-summary{margin-top:18px;padding:18px;border-radius:12px;background:var(--surface);border:1px solid rgba(16,42,68,0.06)}
+    .merchant-offers{margin-top:18px;display:grid;gap:12px}
+    .offer-section{padding:16px;border-radius:12px;border:1px solid rgba(16,42,68,0.08);background:#fff}
+    .offer-section h3{margin:0 0 10px;font-size:1.05rem}
+    .offer-list{display:grid;gap:10px}
+    .offer-card{padding:12px;border-radius:10px;background:var(--surface);border:1px solid rgba(16,42,68,0.07)}
+    .offer-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px}
+    .status-pill{padding:4px 8px;border-radius:999px;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em}
+    .status-pill.active{background:rgba(30,127,75,0.12);color:#1e7f4b}
+    .status-pill.expired{background:rgba(217,73,95,0.12);color:#c22e43}
     .merchant-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
     .merchant-action-btn{padding:11px 16px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
     .merchant-action-btn.secondary{background:#fff;color:var(--accent);border:1px solid rgba(16,42,68,0.12)}
@@ -57,6 +66,8 @@
               <p class="small">Loading merchant details...</p>
             </div>
 
+            <div id="merchantOffers" class="merchant-offers"></div>
+
             <div class="merchant-actions">
               <button id="publishDealsBtn" class="merchant-action-btn" type="button">Publish Deals</button>
               <button id="publishCouponsBtn" class="merchant-action-btn secondary" type="button">Publish Coupons</button>
@@ -82,6 +93,8 @@
     const username = params.get('username') || '';
 
     const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
+    const API_BASE_URL = 'https://s49qvomd5k.execute-api.us-east-1.amazonaws.com';
+    const merchantKey = (username || 'merchant-123').toLowerCase();
 
     const navWelcome = document.getElementById('navWelcome');
     const navProfile = document.getElementById('navProfile');
@@ -93,6 +106,7 @@
     const welcomeSubtitle = document.getElementById('welcomeSubtitle');
     const profileContent = document.getElementById('profileContent');
     const merchantSummary = document.getElementById('merchantSummary');
+    const merchantOffers = document.getElementById('merchantOffers');
     const publishDealsBtn = document.getElementById('publishDealsBtn');
     const publishCouponsBtn = document.getElementById('publishCouponsBtn');
 
@@ -112,6 +126,74 @@
     }
 
     function escapeHtml(v){return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+    function getOfferStatus(dateValue) {
+      if (!dateValue) return 'Active';
+      const endDate = new Date(dateValue + 'T23:59:59');
+      const today = new Date();
+      return endDate >= today ? 'Active' : 'Expired';
+    }
+
+    async function loadMerchantOffersFromApi() {
+      if (!merchantOffers) return;
+      const merchantId = username || 'merchant-123';
+      merchantOffers.innerHTML = '<div class="offer-section"><h3>Published offers</h3><div class="small">Loading deals and coupons...</div></div>';
+
+      try {
+        const [dealsRes, couponsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/merchant-deals?merchantId=${encodeURIComponent(merchantId)}`),
+          fetch(`${API_BASE_URL}/merchant-coupons?merchantId=${encodeURIComponent(merchantId)}`)
+        ]);
+
+        const dealsData = dealsRes.ok ? ((await dealsRes.json()).data || []) : [];
+        const couponsData = couponsRes.ok ? ((await couponsRes.json()).data || []) : [];
+
+        renderPublishedOffers(dealsData, couponsData);
+      } catch (error) {
+        console.error('Failed to load merchant offers from API:', error);
+        merchantOffers.innerHTML = '<div class="offer-section"><h3>Published offers</h3><div class="small">Unable to load deals and coupons right now.</div></div>';
+      }
+    }
+
+    function renderPublishedOffers(deals = [], coupons = []) {
+      if (!merchantOffers) return;
+
+      const dealList = Array.isArray(deals) ? deals : [];
+      const couponList = Array.isArray(coupons) ? coupons : [];
+      const buildCard = (item, kind) => {
+        const status = getOfferStatus(item.to || item.validTo || item.endDate || item.dateTo);
+        const statusClass = status === 'Active' ? 'active' : 'expired';
+        const kindLabel = kind === 'coupon' ? 'Coupon' : 'Deal';
+        const location = [item.address, item.city, item.pin, item.state].filter(Boolean).join(', ');
+        return `
+          <div class="offer-card">
+            <div class="offer-top">
+              <strong>${escapeHtml(item.title || 'Untitled offer')}</strong>
+              <span class="status-pill ${statusClass}">${status}</span>
+            </div>
+            <div class="small"><strong>${kindLabel}</strong> • ${escapeHtml(item.category || item.type || 'General')}</div>
+            <div class="small" style="margin-top:4px;">${escapeHtml(location || 'Location not available')}</div>
+            <div class="small" style="margin-top:4px;">Valid: ${escapeHtml(item.from || 'N/A')} to ${escapeHtml(item.to || 'N/A')}</div>
+            <div class="small" style="margin-top:6px;">${escapeHtml(item.details || 'No details provided')}</div>
+          </div>
+        `;
+      };
+
+      merchantOffers.innerHTML = `
+        <div class="offer-section">
+          <h3>Published deals</h3>
+          <div class="offer-list">
+            ${dealList.length ? dealList.map(item => buildCard(item, 'deal')).join('') : '<div class="small">No deals published.</div>'}
+          </div>
+        </div>
+        <div class="offer-section">
+          <h3>Published coupons</h3>
+          <div class="offer-list">
+            ${couponList.length ? couponList.map(item => buildCard(item, 'coupon')).join('') : '<div class="small">No coupons published.</div>'}
+          </div>
+        </div>
+      `;
+    }
 
     function openFeatureWindow(featureName) {
       const pageName = featureName === 'deals' ? './Add_Deals.html' : './Add_Coupons.html';
@@ -153,6 +235,8 @@
       if (profile.address?.state) {
         try { localStorage.setItem('arrivioCurrentMerchantState', profile.address.state); } catch (e) {}
       }
+
+      loadMerchantOffersFromApi();
 
       const displayState = profile.address?.state || '';
       const displayLat = profile.geocode?.lat || profile.address?.geocode?.lat || '';
