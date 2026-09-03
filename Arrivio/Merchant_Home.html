@@ -140,18 +140,35 @@
       merchantOffers.innerHTML = '<div class="offer-section"><h3>Published offers</h3><div class="small">Loading deals and coupons...</div></div>';
 
       try {
-        const [dealsRes, couponsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/merchant-deals?merchantId=${encodeURIComponent(merchantId)}`),
-          fetch(`${API_BASE_URL}/merchant-coupons?merchantId=${encodeURIComponent(merchantId)}`)
-        ]);
+        const dealsRes = await fetch(`${API_BASE_URL}/merchant-deals?merchantId=${encodeURIComponent(merchantId)}`);
 
-        const dealsData = dealsRes.ok ? ((await dealsRes.json()).data || []) : [];
-        const couponsData = couponsRes.ok ? ((await couponsRes.json()).data || []) : [];
+        if (!dealsRes.ok) {
+          const dealsText = await dealsRes.text().catch(() => '');
+          throw new Error(`Deals API: ${dealsRes.status} ${dealsText || 'Not Found'}`);
+        }
+
+        const dealsPayload = await dealsRes.json().catch(() => ({}));
+        const dealsData = Array.isArray(dealsPayload.data) ? dealsPayload.data : [];
+
+        let couponsData = [];
+        try {
+          const couponsRes = await fetch(`${API_BASE_URL}/merchant-coupons?merchantId=${encodeURIComponent(merchantId)}`);
+          if (couponsRes.ok) {
+            const couponsPayload = await couponsRes.json().catch(() => ({}));
+            couponsData = Array.isArray(couponsPayload.data) ? couponsPayload.data : [];
+          } else if (couponsRes.status !== 404) {
+            const couponsText = await couponsRes.text().catch(() => '');
+            console.warn(`Coupons API ignored for now: ${couponsRes.status} ${couponsText || 'Not Found'}`);
+          }
+        } catch (couponError) {
+          console.warn('Coupons endpoint unavailable right now; deals remain active.', couponError);
+        }
 
         renderPublishedOffers(dealsData, couponsData);
       } catch (error) {
+        const details = error && error.message ? error.message : 'Unknown error';
         console.error('Failed to load merchant offers from API:', error);
-        merchantOffers.innerHTML = '<div class="offer-section"><h3>Published offers</h3><div class="small">Unable to load deals and coupons right now.</div></div>';
+        merchantOffers.innerHTML = `<div class="offer-section"><h3>Published offers</h3><div class="small">Unable to load deals and coupons right now. ${escapeHtml(details)}</div></div>`;
       }
     }
 
