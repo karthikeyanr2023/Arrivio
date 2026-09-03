@@ -91,10 +91,11 @@
   <script>
     const params = new URLSearchParams(location.search);
     const username = params.get('username') || '';
+    const merchantIdFromQuery = params.get('merchantId') || '';
 
     const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
     const API_BASE_URL = 'https://s49qvomd5k.execute-api.us-east-1.amazonaws.com';
-    const merchantKey = (username || 'merchant-123').toLowerCase();
+    const merchantKey = (merchantIdFromQuery || username || 'merchant-123').toLowerCase();
 
     const navWelcome = document.getElementById('navWelcome');
     const navProfile = document.getElementById('navProfile');
@@ -136,7 +137,8 @@
 
     async function loadMerchantOffersFromApi() {
       if (!merchantOffers) return;
-      const merchantId = username || 'merchant-123';
+      const merchantId = merchantIdFromQuery || username || 'merchant-123';
+      console.log('Merchant_Home loading deals for merchantId:', merchantId);
       merchantOffers.innerHTML = '<div class="offer-section"><h3>Published offers</h3><div class="small">Loading deals and coupons...</div></div>';
 
       try {
