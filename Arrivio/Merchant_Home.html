@@ -96,6 +96,8 @@
     const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
     const API_BASE_URL = 'https://kmofipldg8.execute-api.us-east-1.amazonaws.com';
     const merchantKey = (merchantIdFromQuery || username || 'merchant-123').toLowerCase();
+    const DEALS_API_URL = `${API_BASE_URL}/merchant-deals`;
+    const COUPONS_API_URL = `${API_BASE_URL}/merchant-coupons`;
 
     const navWelcome = document.getElementById('navWelcome');
     const navProfile = document.getElementById('navProfile');
@@ -142,7 +144,7 @@
       merchantOffers.innerHTML = '<div class="offer-section"><h3>Published offers</h3><div class="small">Loading deals and coupons...</div></div>';
 
       try {
-        const dealsRes = await fetch(`${API_BASE_URL}/merchant-deals?merchantId=${encodeURIComponent(merchantId)}`);
+        const dealsRes = await fetch(`${DEALS_API_URL}?merchantId=${encodeURIComponent(merchantId)}`);
 
         if (!dealsRes.ok) {
           const dealsText = await dealsRes.text().catch(() => '');
@@ -154,7 +156,7 @@
 
         let couponsData = [];
         try {
-          const couponsRes = await fetch(`${API_BASE_URL}/merchant-coupons?merchantId=${encodeURIComponent(merchantId)}`);
+          const couponsRes = await fetch(`${COUPONS_API_URL}?merchantId=${encodeURIComponent(merchantId)}`);
           if (couponsRes.ok) {
             const couponsPayload = await couponsRes.json().catch(() => ({}));
             couponsData = Array.isArray(couponsPayload.data) ? couponsPayload.data : [];
