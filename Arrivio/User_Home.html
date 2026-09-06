@@ -24,6 +24,15 @@
     .value{flex:1}
     .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
     .small{font-size:0.95rem;color:var(--muted)}
+    .proximity-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .proximity-label{font-weight:700;color:var(--muted)}
+    .proximity-options{display:flex;gap:8px;flex-wrap:wrap}
+    .proximity-option{
+      display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;line-height:1;transition:all 0.2s ease;box-shadow:0 1px 2px rgba(16,42,68,0.04)
+    }
+    .proximity-option:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(27,107,214,0.08)}
+    .proximity-option.active{background:linear-gradient(135deg,#1b6bd6,#2a7fe8);color:#fff;border-color:rgba(27,107,214,0.2);box-shadow:0 8px 18px rgba(27,107,214,0.18)}
+    .proximity-option .icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;font-size:1.05rem}
     .spinner {
       display: inline-block;
       width: 16px;
@@ -76,13 +85,21 @@
               </div>
 
               <div id="proximityBlock" style="margin-top:14px;display:none;">
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                  <span class="small" style="font-weight:700;color:var(--muted);">Proximity</span>
-                  <div id="proximityOptions" style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button type="button" class="proximity-option active" data-mile="5" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:var(--accent);color:#fff;cursor:pointer;font-weight:700;">5 miles</button>
-                    <button type="button" class="proximity-option" data-mile="10" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">10 miles</button>
-                    <button type="button" class="proximity-option" data-mile="50" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">50 miles</button>
-                    <button type="button" class="proximity-option" data-mile="100" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">100 miles</button>
+                <div class="proximity-row">
+                  <span class="small proximity-label">Proximity</span>
+                  <div id="proximityOptions" class="proximity-options">
+                    <button type="button" class="proximity-option" data-mile="2">
+                      <span class="icon">🚶</span>
+                      <span>Walking</span>
+                    </button>
+                    <button type="button" class="proximity-option active" data-mile="5">
+                      <span class="icon">🛴</span>
+                      <span>Cycle / Scooter</span>
+                    </button>
+                    <button type="button" class="proximity-option" data-mile="10">
+                      <span class="icon">🚇</span>
+                      <span>Light train</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -223,8 +240,6 @@
       document.querySelectorAll('.proximity-option').forEach(el => {
         const isActive = Number(el.dataset.mile) === selectedProximityMiles;
         el.classList.toggle('active', isActive);
-        el.style.background = isActive ? 'var(--accent)' : '#fff';
-        el.style.color = isActive ? '#fff' : 'var(--accent)';
       });
       if (merchantDistanceData.length) {
         renderMerchantDistances(merchantDistanceData);
