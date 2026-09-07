@@ -268,7 +268,21 @@
 
     function getMerchantId(item) {
       if (!item) return '';
-      return String(item.merchantId || item.merchant_id || item.merchantID || item.id || item.username || item.userName || item.businessName || item.business_name || '').trim();
+
+      const directId = item.merchantId || item.merchant_id || item.merchantID || item.id || item.username || item.userName || item.businessName || item.business_name || '';
+      if (String(directId).trim()) return String(directId).trim();
+
+      const email = item.merchantEmail || item.merchant_email || item.email || item.merchant?.email || '';
+      if (String(email).trim()) {
+        const normalized = String(email).trim().toLowerCase();
+        const localPart = normalized.split('@')[0];
+        if (localPart) return localPart;
+      }
+
+      const name = item.merchantName || item.merchant_name || item.name || item.businessTitle || item.business_title || '';
+      if (String(name).trim()) return String(name).trim().toLowerCase().replace(/\s+/g, '-');
+
+      return '';
     }
 
     function getMerchantPhone(item) {
