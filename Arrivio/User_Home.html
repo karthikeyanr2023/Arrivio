@@ -266,6 +266,11 @@
       return businessTitle || merchantName;
     }
 
+    function getMerchantId(item) {
+      if (!item) return '';
+      return String(item.merchantId || item.merchant_id || item.merchantID || item.id || item.username || item.userName || item.businessName || item.business_name || '').trim();
+    }
+
     function getMerchantPhone(item) {
       const phone = item && (item.phone || item.mobileNumber || item.contactNumber || item.businessDetails?.phone || item.businessDetails?.contactNumber || '');
       return String(phone || '').trim();
@@ -278,6 +283,49 @@
       return parts.length ? parts.join(', ') : 'Address unavailable';
     }
 
+    function normalizeOfferArray(data) {
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.data)) return data.data;
+      if (data && typeof data === 'object') {
+        const entries = Object.values(data);
+        return entries.some(Array.isArray) ? entries.filter(Array.isArray).flat() : [];
+      }
+      return [];
+    }
+
+    async function fetchMerchantOffers(merchantId) {
+      if (!merchantId) return { deals: [], coupons: [] };
+
+      try {
+        const [dealsRes, couponsRes] = await Promise.all([
+          fetch(`https://s49qvomd5k.execute-api.us-east-1.amazonaws.com/merchant-deals?merchantId=${encodeURIComponent(merchantId)}`),
+          fetch(`https://s49qvomd5k.execute-api.us-east-1.amazonaws.com/merchant-coupons?merchantId=${encodeURIComponent(merchantId)}`)
+        ]);
+
+        const dealsPayload = dealsRes.ok ? await dealsRes.json().catch(() => ({})) : {};
+        const couponsPayload = couponsRes.ok ? await couponsRes.json().catch(() => ({})) : {};
+
+        return {
+          deals: normalizeOfferArray(dealsPayload),
+          coupons: normalizeOfferArray(couponsPayload)
+        };
+      } catch (error) {
+        console.warn('Unable to fetch offers for merchant', merchantId, error);
+        return { deals: [], coupons: [] };
+      }
+    }
+
+    function formatOfferSnippet(offers, type) {
+      const list = Array.isArray(offers) ? offers.slice(0, 2) : [];
+      if (!list.length) return '<div class="small" style="margin-top:6px;">No ' + type + ' available.</div>';
+
+      return list.map(offer => {
+        const title = offer.title || offer.name || (type === 'deal' ? 'Deal' : 'Coupon');
+        const detail = offer.details || offer.description || 'Offer available';
+        return `<div class="small" style="margin-top:6px;">• ${escapeHtml(title)}: ${escapeHtml(detail)}</div>`;
+      }).join('');
+    }
+
     function parseDistanceMiles(item) {
       const directMiles = Number(item && (item.distanceMiles ?? item.distance_miles));
       if (!Number.isNaN(directMiles) && directMiles >= 0) return directMiles;
@@ -288,7 +336,7 @@
       return Number.MAX_SAFE_INTEGER;
     }
 
-    function renderMerchantDistances(items) {
+    async function renderMerchantDistances(items) {
       const list = document.getElementById('merchantDistanceList');
       const results = document.getElementById('merchantDistanceResults');
       const proximityBlock = document.getElementById('proximityBlock');
@@ -306,12 +354,34 @@
         return;
       }
 
-      list.innerHTML = filteredItems.map(item => {
+      const enrichedItems = await Promise.all(filteredItems.map(async (item) => {
+        const merchantId = getMerchantId(item);
+        const offers = merchantId ? await fetchMerchantOffers(merchantId) : { deals: [], coupons: [] };
+        return { ...item, deals: offers.deals || [], coupons: offers.coupons || [] };
+      }));
+
+      list.innerHTML = enrichedItems.map(item => {
         const name = getMerchantDisplayName(item);
         const miles = parseDistanceMiles(item).toFixed(2);
         const phone = getMerchantPhone(item);
         const addressText = getMerchantAddressText(item);
-        return `<li><div style="font-weight:700;color:#102a44;">${escapeHtml(name)}</div><div style="color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div><div style="color:var(--muted);font-size:0.85rem;">${escapeHtml(addressText)}</div><div style="margin-top:4px;color:var(--accent);font-weight:700;">${miles} miles</div></li>`;
+        const dealsHtml = formatOfferSnippet(item.deals || [], 'deal');
+        const couponsHtml = formatOfferSnippet(item.coupons || [], 'coupon');
+
+        return `
+          <li>
+            <div style="font-weight:700;color:#102a44;">${escapeHtml(name)}</div>
+            <div style="color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
+            <div style="color:var(--muted);font-size:0.85rem;">${escapeHtml(addressText)}</div>
+            <div style="margin-top:4px;color:var(--accent);font-weight:700;">${miles} miles</div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(16,42,68,0.08);">
+              <div style="font-weight:700;color:#102a44;font-size:0.85rem;">Deals</div>
+              ${dealsHtml}
+              <div style="font-weight:700;color:#102a44;font-size:0.85rem;margin-top:8px;">Coupons</div>
+              ${couponsHtml}
+            </div>
+          </li>
+        `;
       }).join('');
 
       results.style.display = 'block';
