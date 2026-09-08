@@ -34,10 +34,12 @@
     .proximity-option.active{background:linear-gradient(135deg,#1b6bd6,#2a7fe8);color:#fff;border-color:rgba(27,107,214,0.2);box-shadow:0 8px 18px rgba(27,107,214,0.18)}
     .proximity-option .icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;font-size:1.05rem}
     .merchant-offer-row{display:flex;align-items:flex-start;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(16,42,68,0.08)}
-    .merchant-offer-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,#edf5ff,#dfeeff);font-size:1.2rem;cursor:pointer;flex-shrink:0;box-shadow:0 4px 10px rgba(27,107,214,0.08)}
-    .merchant-offer-icon:hover .merchant-offer-tooltip,.merchant-offer-icon:focus-within .merchant-offer-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
+    .merchant-offer-icon-stack{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .merchant-offer-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,#edf5ff,#dfeeff);font-size:1.2rem;cursor:pointer;box-shadow:0 4px 10px rgba(27,107,214,0.08)}
+    .merchant-offer-tag{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#fff5de,#ffe4ad);font-size:1rem;cursor:pointer;box-shadow:0 4px 10px rgba(239,160,71,0.12)}
+    .merchant-offer-icon:hover .merchant-offer-tooltip,.merchant-offer-icon:focus-within .merchant-offer-tooltip,.merchant-offer-tag:hover .merchant-offer-tooltip,.merchant-offer-tag:focus-within .merchant-offer-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
     .merchant-offer-tooltip{
-      position:absolute;left:42px;top:-8px;min-width:240px;background:linear-gradient(180deg,#122846,#0d1d31);color:#fff;padding:12px 12px 10px;border-radius:12px;font-size:0.75rem;line-height:1.5;box-shadow:0 16px 30px rgba(16,42,68,0.26), inset 0 1px 0 rgba(255,255,255,0.08);opacity:0;visibility:hidden;transform:translateY(8px);transition:all 0.18s ease;z-index:2;pointer-events:none;border:1px solid rgba(255,255,255,0.06)
+      position:absolute;left:38px;top:-8px;min-width:240px;background:linear-gradient(180deg,#122846,#0d1d31);color:#fff;padding:12px 12px 10px;border-radius:12px;font-size:0.75rem;line-height:1.5;box-shadow:0 16px 30px rgba(16,42,68,0.26), inset 0 1px 0 rgba(255,255,255,0.08);opacity:0;visibility:hidden;transform:translateY(8px);transition:all 0.18s ease;z-index:2;pointer-events:none;border:1px solid rgba(255,255,255,0.06)
     }
     .merchant-offer-tooltip::before{content:"";position:absolute;left:-6px;top:16px;width:12px;height:12px;background:linear-gradient(180deg,#122846,#0d1d31);border-left:1px solid rgba(255,255,255,0.06);border-bottom:1px solid rgba(255,255,255,0.06);transform:rotate(45deg)}
     .merchant-offer-tooltip strong{display:block;margin-bottom:4px;color:#eaf3ff}
@@ -401,13 +403,25 @@
         return `
           <li>
             <div class="merchant-offer-row">
-              <div class="merchant-offer-icon" tabindex="0" aria-label="Merchant details for ${escapeHtml(name)}">
-                ${offerIcon}
-                <div class="merchant-offer-tooltip">
-                  <div><strong>${escapeHtml(name)}</strong></div>
-                  <div>${escapeHtml(addressText)}</div>
-                  <div>${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
-                  <div>Distance: ${miles} miles</div>
+              <div class="merchant-offer-icon-stack">
+                <div class="merchant-offer-icon" tabindex="0" aria-label="Merchant details for ${escapeHtml(name)}">
+                  ${offerIcon}
+                  <div class="merchant-offer-tooltip">
+                    <div><strong>${escapeHtml(name)}</strong></div>
+                    <div>${escapeHtml(addressText)}</div>
+                    <div>${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
+                    <div>Distance: ${miles} miles</div>
+                  </div>
+                </div>
+                <div class="merchant-offer-tag" tabindex="0" aria-label="Offer tag for ${escapeHtml(name)}">
+                  🏷
+                  <div class="merchant-offer-tooltip">
+                    <div><strong>${escapeHtml(name)}</strong></div>
+                    <div>Deals: ${escapeHtml(dealTitle)} — ${escapeHtml(dealDetail)}</div>
+                    <div>Coupons: ${escapeHtml(couponTitle)} — ${escapeHtml(couponDetail)}</div>
+                    <div>${escapeHtml(addressText)}</div>
+                    <div>${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
+                  </div>
                 </div>
               </div>
               <div class="merchant-offer-content">
