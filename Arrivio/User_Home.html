@@ -503,7 +503,9 @@
       if (proximityBlock) proximityBlock.style.display = merchantDistanceData.length ? 'block' : 'none';
 
       const limit = selectedProximityMiles || 100;
-      const filteredItems = merchantDistanceData.filter(item => parseDistanceMiles(item) <= limit);
+      const filteredItems = merchantDistanceData
+        .filter(item => parseDistanceMiles(item) <= limit)
+        .sort((a, b) => parseDistanceMiles(a) - parseDistanceMiles(b));
 
       if (!filteredItems.length) {
         list.innerHTML = '<li>No nearby merchant geolocations were found within ' + limit + ' miles.</li>';
