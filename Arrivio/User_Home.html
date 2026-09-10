@@ -123,6 +123,17 @@
                 <h3 style="margin:0 0 8px; font-size:1.1rem;">Nearby merchants</h3>
                 <ul id="merchantDistanceList" style="margin:0;padding-left:18px;display:grid;gap:8px;"></ul>
               </div>
+
+              <div id="debugPanel" style="margin-top:20px;padding:12px;border:1px solid rgba(16,42,68,0.08);border-radius:12px;background:#f9fbff;display:block;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+                  <strong style="font-size:0.9rem;color:#102a44;">Behavior debug log</strong>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button id="downloadDebugLogBtn" type="button" style="padding:6px 10px;border:1px solid rgba(16,42,68,0.12);border-radius:8px;background:#fff;cursor:pointer;font-weight:700;color:var(--accent);">Download</button>
+                    <button id="clearDebugLogBtn" type="button" style="padding:6px 10px;border:1px solid rgba(16,42,68,0.12);border-radius:8px;background:#fff;cursor:pointer;font-weight:700;color:var(--muted);">Clear</button>
+                  </div>
+                </div>
+                <pre id="debugLogOutput" style="margin:0;max-height:220px;overflow:auto;background:#fff;border:1px solid rgba(16,42,68,0.08);border-radius:10px;padding:10px;font-size:0.74rem;line-height:1.5;color:#102a44;white-space:pre-wrap;word-break:break-word;">No events yet.</pre>
+              </div>
             </div>
           </section>
 
@@ -237,6 +248,123 @@
 
     let merchantDistanceData = [];
     let selectedProximityMiles = 5;
+    let currentDestinationLabel = '';
+    const DEBUG_LOG_LIMIT = 200;
+    const DEBUG_LOG_KEY = 'arrivio_debug_log';
+    const debugLogBuffer = [];
+    const hoverState = new Map();
+
+    function restoreDebugLog() {
+      try {
+        const raw = localStorage.getItem(DEBUG_LOG_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          debugLogBuffer.length = 0;
+          parsed.slice(-DEBUG_LOG_LIMIT).forEach(item => debugLogBuffer.push(item));
+        }
+      } catch (e) {
+        console.warn('Unable to restore browser debug log:', e);
+      }
+    }
+
+    function renderDebugLog() {
+      const output = document.getElementById('debugLogOutput');
+      if (!output) return;
+      const text = debugLogBuffer.length ? debugLogBuffer.map(entry => `[${
+        entry.timestamp
+      }] ${entry.eventType} ${JSON.stringify(entry.payload)}`).join('\n') : 'No events yet.';
+      output.textContent = text;
+    }
+
+    function logDebugEvent(eventType, payload = {}) {
+      const entry = {
+        timestamp: new Date().toISOString(),
+        eventType,
+        payload: payload || {}
+      };
+      debugLogBuffer.push(entry);
+      if (debugLogBuffer.length > DEBUG_LOG_LIMIT) debugLogBuffer.shift();
+      try { localStorage.setItem(DEBUG_LOG_KEY, JSON.stringify(debugLogBuffer)); } catch (e) {}
+      renderDebugLog();
+    }
+
+    function clearDebugLog() {
+      debugLogBuffer.length = 0;
+      try { localStorage.removeItem(DEBUG_LOG_KEY); } catch (e) {}
+      renderDebugLog();
+    }
+
+    function downloadDebugLog() {
+      const content = debugLogBuffer.length ? debugLogBuffer.map(entry => `[$${
+        entry.timestamp
+      }] ${entry.eventType} ${JSON.stringify(entry.payload)}`).join('\n') : 'No events yet.';
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'arrivio-user-behavior-log.txt';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function bindDebugButtons() {
+      const clearBtn = document.getElementById('clearDebugLogBtn');
+      const downloadBtn = document.getElementById('downloadDebugLogBtn');
+      if (clearBtn) clearBtn.addEventListener('click', clearDebugLog);
+      if (downloadBtn) downloadBtn.addEventListener('click', downloadDebugLog);
+    }
+
+    function makeMerchantDebugContext(row) {
+      const merchantId = row.dataset.merchantId || 'unknown';
+      const merchantName = row.dataset.merchantName || merchantId;
+      const category = row.dataset.category || 'General';
+      return { merchantId, merchantName, category, destination: currentDestinationLabel || 'unknown' };
+    }
+
+    function bindMerchantRowDebugEvents() {
+      const rows = document.querySelectorAll('.merchant-offer-row');
+      rows.forEach((row) => {
+        const context = makeMerchantDebugContext(row);
+        const rowKey = `${context.merchantId}:${context.category}`;
+
+        logDebugEvent('item_impression', {
+          ...context,
+          entityType: 'merchant',
+          entityId: context.merchantId,
+          item_id: context.merchantId
+        });
+
+        row.addEventListener('mouseenter', () => {
+          const start = Date.now();
+          hoverState.set(rowKey, start);
+          logDebugEvent('item_hover_start', { ...context, entityType: 'merchant', entityId: context.merchantId, duration_seconds: 0 });
+        });
+
+        row.addEventListener('mouseleave', () => {
+          const start = hoverState.get(rowKey);
+          if (typeof start === 'number') {
+            const durationSeconds = ((Date.now() - start) / 1000).toFixed(2);
+            logDebugEvent('item_hover_end', { ...context, entityType: 'merchant', entityId: context.merchantId, duration_seconds: Number(durationSeconds) });
+            hoverState.delete(rowKey);
+          }
+        });
+
+        row.addEventListener('click', () => {
+          logDebugEvent('item_click', { ...context, entityType: 'merchant', entityId: context.merchantId });
+        });
+
+        row.querySelectorAll('.merchant-offer-icon, .merchant-offer-tag').forEach((icon) => {
+          icon.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const action = icon.classList.contains('merchant-offer-tag') ? 'deal_tag_click' : 'item_details_open';
+            logDebugEvent(action, { ...context, entityType: 'merchant', entityId: context.merchantId });
+          });
+        });
+      });
+    }
 
     function getStoredProximity() {
       try {
@@ -391,6 +519,8 @@
 
       list.innerHTML = enrichedItems.map(item => {
         const name = getMerchantDisplayName(item);
+        const merchantId = getMerchantId(item) || name.toLowerCase().replace(/\s+/g, '-');
+        const category = item.category || item.businessType || 'General';
         const miles = parseDistanceMiles(item).toFixed(2);
         const phone = getMerchantPhone(item);
         const addressText = getMerchantAddressText(item);
@@ -401,51 +531,55 @@
         const offerIcon = item.deals?.length || item.coupons?.length ? '🎁' : '📍';
 
         return `
-          <li>
-            <div class="merchant-offer-row">
-              <div class="merchant-offer-icon-stack">
-                <div class="merchant-offer-icon" tabindex="0" aria-label="Merchant details for ${escapeHtml(name)}">
-                  ${offerIcon}
-                  <div class="merchant-offer-tooltip">
-                    <div><strong>${escapeHtml(name)}</strong></div>
-                    <div>${escapeHtml(addressText)}</div>
-                    <div>${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
-                    <div>Distance: ${miles} miles</div>
-                  </div>
-                </div>
-                <div class="merchant-offer-tag" tabindex="0" aria-label="Offer tag for ${escapeHtml(name)}">
-                  🏷
-                  <div class="merchant-offer-tooltip">
-                    <div><strong>${escapeHtml(name)}</strong></div>
-                    <div>Deals: ${escapeHtml(dealTitle)} — ${escapeHtml(dealDetail)}</div>
-                    <div>Coupons: ${escapeHtml(couponTitle)} — ${escapeHtml(couponDetail)}</div>
-                    <div>${escapeHtml(addressText)}</div>
-                    <div>${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
-                  </div>
+          <li class="merchant-offer-row" data-merchant-id="${escapeHtml(merchantId)}" data-merchant-name="${escapeHtml(name)}" data-category="${escapeHtml(category)}">
+            <div class="merchant-offer-icon-stack">
+              <div class="merchant-offer-icon" tabindex="0" aria-label="Merchant details for ${escapeHtml(name)}">
+                ${offerIcon}
+                <div class="merchant-offer-tooltip">
+                  <div><strong>${escapeHtml(name)}</strong></div>
+                  <div>${escapeHtml(addressText)}</div>
+                  <div>${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
+                  <div>Distance: ${miles} miles</div>
                 </div>
               </div>
-              <div class="merchant-offer-content">
-                <div class="merchant-offer-title">
-                  <span>${escapeHtml(name)}</span>
-                  <span style="color:var(--accent);font-weight:800;">${miles} mi</span>
+              <div class="merchant-offer-tag" tabindex="0" aria-label="Offer tag for ${escapeHtml(name)}">
+                🏷
+                <div class="merchant-offer-tooltip">
+                  <div><strong>${escapeHtml(name)}</strong></div>
+                  <div>Deals: ${escapeHtml(dealTitle)} — ${escapeHtml(dealDetail)}</div>
+                  <div>Coupons: ${escapeHtml(couponTitle)} — ${escapeHtml(couponDetail)}</div>
+                  <div>${escapeHtml(addressText)}</div>
+                  <div>${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
                 </div>
-                <div class="merchant-offer-meta">Deal / coupon details</div>
-                <div class="merchant-offer-item"><strong>Deal:</strong> ${escapeHtml(dealTitle)} — ${escapeHtml(dealDetail)}</div>
-                <div class="merchant-offer-item"><strong>Coupon:</strong> ${escapeHtml(couponTitle)} — ${escapeHtml(couponDetail)}</div>
               </div>
+            </div>
+            <div class="merchant-offer-content">
+              <div class="merchant-offer-title">
+                <span>${escapeHtml(name)}</span>
+                <span style="color:var(--accent);font-weight:800;">${miles} mi</span>
+              </div>
+              <div class="merchant-offer-meta">Deal / coupon details</div>
+              <div class="merchant-offer-item"><strong>Deal:</strong> ${escapeHtml(dealTitle)} — ${escapeHtml(dealDetail)}</div>
+              <div class="merchant-offer-item"><strong>Coupon:</strong> ${escapeHtml(couponTitle)} — ${escapeHtml(couponDetail)}</div>
             </div>
           </li>
         `;
       }).join('');
 
+      bindMerchantRowDebugEvents();
       results.style.display = 'block';
     }
 
     document.querySelectorAll('.proximity-option').forEach(button => {
       button.addEventListener('click', () => {
-        applyProximitySelection(button.dataset.mile || 5);
-      });
-    });
+        const travelMode = button.textContent.trim();
+        const selectedValue = button.dataset.mile || 5;
+        logDebugEvent('travel_mode_selected', {
+          travelMode: travelMode,
+          selectedMiles: Number(selectedValue),
+          destination: currentDestinationLabel || 'not_set'
+        });
+        applyProximitySelection(selectedValue);
 
     selectedProximityMiles = getStoredProximity();
     applyProximitySelection(selectedProximityMiles);
@@ -461,9 +595,16 @@
       welcomeSubtitle.textContent = 'Signed in';
     }
 
+    bindDebugButtons();
+    restoreDebugLog();
+    renderDebugLog();
+
     setDestBtn.addEventListener('click', async () => {
       const v = destInput.value.trim();
       if(!v){ destMsg.textContent = 'Please enter a destination.'; destMsg.style.display = ''; return; }
+
+      currentDestinationLabel = v;
+      logDebugEvent('destination_visit', { destination: v, userId: username || 'anonymous' });
 
       destMsg.style.display = '';
       destMsg.textContent = 'Resolving destination...';
