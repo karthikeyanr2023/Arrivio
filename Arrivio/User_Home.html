@@ -278,6 +278,51 @@
       }
     }
 
+    function normalizeTravelMode(value) {
+      const mode = String(value || '').toLowerCase().trim();
+      if (!mode) return '';
+      if (mode.includes('walk')) return 'walking';
+      if (mode.includes('cycle') || mode.includes('scooter')) return 'cycle';
+      if (mode.includes('train') || mode.includes('light train')) return 'light_train';
+      return mode.replace(/[^a-z_\s-]/g, '').replace(/\s+/g, '_').replace(/-+/g, '_').trim();
+    }
+
+    function normalizeDestination(value) {
+      if (!value) return '';
+      const sanitized = String(value).replace(/https?:\/\/.*$/i, '').trim();
+      return sanitized || '';
+    }
+
+    function normalizeStoredPayload(payload = {}) {
+      const normalized = { ...(payload || {}) };
+
+      if (normalized.travelMode !== undefined) {
+        normalized.travelMode = normalizeTravelMode(normalized.travelMode);
+      }
+
+      if (normalized.destination !== undefined) {
+        normalized.destination = normalizeDestination(normalized.destination);
+      }
+
+      if (normalized.category !== undefined) {
+        normalized.category = String(normalized.category).toLowerCase().trim();
+      }
+
+      if (normalized.offerType !== undefined) {
+        normalized.offerType = String(normalized.offerType).toLowerCase().trim();
+      }
+
+      if (normalized.type !== undefined) {
+        normalized.type = String(normalized.type).toLowerCase().trim();
+      }
+
+      if (normalized.merchantName !== undefined) {
+        normalized.merchantName = String(normalized.merchantName).trim();
+      }
+
+      return normalized;
+    }
+
     function renderDebugLog() {
       const output = document.getElementById('debugLogOutput');
       if (!output) return;
@@ -291,7 +336,7 @@
       const entry = {
         timestamp: new Date().toISOString(),
         eventType,
-        payload: payload || {}
+        payload: normalizeStoredPayload(payload || {})
       };
       debugLogBuffer.push(entry);
       if (debugLogBuffer.length > DEBUG_LOG_LIMIT) debugLogBuffer.shift();
