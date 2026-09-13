@@ -178,6 +178,38 @@
       gap: 14px;
     }
 
+    .pattern-result {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: #f8fbff;
+      border: 1px solid rgba(31, 79, 123, 0.12);
+      border-radius: 12px;
+      display: none;
+    }
+
+    .pattern-result.show {
+      display: block;
+    }
+
+    .pattern-result h4 {
+      margin: 0 0 8px;
+      font-size: 0.9rem;
+      color: var(--primary);
+    }
+
+    .pattern-result pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.75rem;
+      line-height: 1.6;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid rgba(31, 79, 123, 0.08);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -307,6 +339,8 @@
         button.addEventListener('click', async (event) => {
           const userId = event.currentTarget.dataset.userId || 'unknown';
           const userName = event.currentTarget.dataset.userName || userId;
+          const card = event.currentTarget.closest('.item-card');
+          const resultBox = card.querySelector('.pattern-result');
           event.currentTarget.disabled = true;
           event.currentTarget.textContent = 'Generating...';
           try {
@@ -319,10 +353,29 @@
             if (!response.ok) {
               throw new Error(payload?.message || 'Unable to generate user pattern');
             }
-            alert(`Pattern generation started for ${userName}.`);
+
+            const patternData = payload?.pattern || payload || {};
+            const formatted = JSON.stringify({
+              userId: payload?.userId || userId,
+              pattern: patternData
+            }, null, 2);
+
+            if (resultBox) {
+              resultBox.innerHTML = `
+                <h4>Pattern summary</h4>
+                <pre>${escapeHtml(formatted)}</pre>
+              `;
+              resultBox.classList.add('show');
+            }
           } catch (error) {
             console.error('Pattern generation failed:', error);
-            alert(error.message || 'Unable to generate user pattern right now.');
+            if (resultBox) {
+              resultBox.innerHTML = `
+                <h4>Pattern summary</h4>
+                <pre>${escapeHtml(error.message || 'Unable to generate user pattern right now.')}</pre>
+              `;
+              resultBox.classList.add('show');
+            }
           } finally {
             event.currentTarget.disabled = false;
             event.currentTarget.textContent = 'Show pattern';
@@ -366,6 +419,10 @@
           </div>
           <div class="details">
             ${details}
+            <div class="pattern-result">
+              <h4>Pattern summary</h4>
+              <pre>Not generated yet.</pre>
+            </div>
           </div>
         </li>`;
     }
