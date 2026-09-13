@@ -160,6 +160,7 @@
     const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
     const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
     const DISTANCE_API_URL = 'https://g6gvqy5ue6.execute-api.us-east-1.amazonaws.com/distance';
+    const USER_ACTIVITY_API_URL = 'https://rprhgi512e.execute-api.us-east-1.amazonaws.com/user-activity';
 
     const navWelcome = document.getElementById('navWelcome');
     const navProfile = document.getElementById('navProfile');
@@ -177,8 +178,17 @@
 
     navWelcome.addEventListener('click', () => showSection('welcome'));
     navProfile.addEventListener('click', () => showSection('profile'));
-    navLogout.addEventListener('click', () => {
-      try { localStorage.removeItem('destination_geocode'); localStorage.removeItem('destination_geocode_details'); localStorage.removeItem('arrivioProximityMiles'); } catch (e) {}
+    navLogout.addEventListener('click', async () => {
+      try {
+        await uploadUserActivityOnLogout();
+      } catch (error) {
+        console.warn('User activity upload failed during logout:', error);
+      }
+      try {
+        localStorage.removeItem('destination_geocode');
+        localStorage.removeItem('destination_geocode_details');
+        localStorage.removeItem('arrivioProximityMiles');
+      } catch (e) {}
       location.href = new URL('./Home_Login.html', window.location.href).toString();
     });
 
@@ -315,6 +325,41 @@
       const downloadBtn = document.getElementById('downloadDebugLogBtn');
       if (clearBtn) clearBtn.addEventListener('click', clearDebugLog);
       if (downloadBtn) downloadBtn.addEventListener('click', downloadDebugLog);
+    }
+
+    async function uploadUserActivityOnLogout() {
+      const userId = username || 'anonymous';
+      let actions = [];
+      try {
+        const raw = localStorage.getItem(DEBUG_LOG_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        actions = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.warn('Unable to read debug log for upload:', e);
+        actions = [];
+      }
+
+      if (!actions.length) {
+        return { ok: true, uploaded: 0 };
+      }
+
+      const response = await fetch(USER_ACTIVITY_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          events: actions
+        })
+      });
+
+      const responseBody = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(responseBody && responseBody.message ? responseBody.message : 'User activity upload failed');
+      }
+
+      try { localStorage.removeItem(DEBUG_LOG_KEY); } catch (e) {}
+      return { ok: true, uploaded: actions.length, response: responseBody };
     }
 
     function makeMerchantDebugContext(row) {
