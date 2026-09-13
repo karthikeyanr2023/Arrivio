@@ -137,6 +137,15 @@
       return endDate >= today ? 'Active' : 'Expired';
     }
 
+    function isOfferActive(item) {
+      if (!item) return false;
+      const dateValue = item.to || item.validTo || item.endDate || item.dateTo || item.expirationDate || item.expiry || item.valid_until;
+      if (!dateValue) return true;
+      const endDate = new Date(String(dateValue).includes('T') ? String(dateValue) : String(dateValue) + 'T23:59:59');
+      if (Number.isNaN(endDate.getTime())) return true;
+      return endDate >= new Date();
+    }
+
     async function loadMerchantOffersFromApi() {
       if (!merchantOffers) return;
       const merchantId = merchantIdFromQuery || username || 'merchant-123';
@@ -179,8 +188,8 @@
     function renderPublishedOffers(deals = [], coupons = []) {
       if (!merchantOffers) return;
 
-      const dealList = Array.isArray(deals) ? deals : [];
-      const couponList = Array.isArray(coupons) ? coupons : [];
+      const dealList = Array.isArray(deals) ? deals.filter(isOfferActive) : [];
+      const couponList = Array.isArray(coupons) ? coupons.filter(isOfferActive) : [];
       const buildCard = (item, kind) => {
         const status = getOfferStatus(item.to || item.validTo || item.endDate || item.dateTo);
         const statusClass = status === 'Active' ? 'active' : 'expired';
@@ -204,13 +213,13 @@
         <div class="offer-section">
           <h3>Published deals</h3>
           <div class="offer-list">
-            ${dealList.length ? dealList.map(item => buildCard(item, 'deal')).join('') : '<div class="small">No deals published.</div>'}
+            ${dealList.length ? dealList.map(item => buildCard(item, 'deal')).join('') : '<div class="small">No active deals published.</div>'}
           </div>
         </div>
         <div class="offer-section">
           <h3>Published coupons</h3>
           <div class="offer-list">
-            ${couponList.length ? couponList.map(item => buildCard(item, 'coupon')).join('') : '<div class="small">No coupons published.</div>'}
+            ${couponList.length ? couponList.map(item => buildCard(item, 'coupon')).join('') : '<div class="small">No active coupons published.</div>'}
           </div>
         </div>
       `;

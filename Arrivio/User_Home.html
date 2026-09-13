@@ -403,6 +403,19 @@
       return payload;
     }
 
+    function getOfferEndDateValue(item) {
+      if (!item || typeof item !== 'object') return '';
+      return item.to || item.validTo || item.endDate || item.dateTo || item.expirationDate || item.expiry || item.valid_until || '';
+    }
+
+    function isOfferActive(item) {
+      const dateValue = getOfferEndDateValue(item);
+      if (!dateValue) return true;
+      const endDate = new Date(String(dateValue).includes('T') ? String(dateValue) : String(dateValue) + 'T23:59:59');
+      if (Number.isNaN(endDate.getTime())) return true;
+      return endDate >= new Date();
+    }
+
     function getMerchantDisplayName(item) {
       const businessTitle = item && (item.businessTitle || item.business_title || item.businessDetails?.title || item.businessDetails?.businessTitle || item.businessName || item.business_name);
       const merchantName = item && (item.merchantName || item.merchant_name || item.name || item.fullName || item.username || 'Merchant');
@@ -463,8 +476,8 @@
         const couponsPayload = couponsRes.ok ? await couponsRes.json().catch(() => ({})) : {};
 
         return {
-          deals: normalizeOfferArray(dealsPayload),
-          coupons: normalizeOfferArray(couponsPayload)
+          deals: normalizeOfferArray(dealsPayload).filter(isOfferActive),
+          coupons: normalizeOfferArray(couponsPayload).filter(isOfferActive)
         };
       } catch (error) {
         console.warn('Unable to fetch offers for merchant', merchantId, error);
