@@ -541,10 +541,17 @@
         const addressText = getMerchantAddressText(item);
         const activeDeals = Array.isArray(item.deals) ? item.deals.filter(isOfferActive) : [];
         const activeCoupons = Array.isArray(item.coupons) ? item.coupons.filter(isOfferActive) : [];
-        const dealTitle = activeDeals[0] ? (activeDeals[0].title || activeDeals[0].name || 'Active deal') : 'No active deal available';
-        const dealDetail = activeDeals[0] ? (activeDeals[0].details || activeDeals[0].description || 'Offer available') : '';
-        const couponTitle = activeCoupons[0] ? (activeCoupons[0].title || activeCoupons[0].name || 'Active coupon') : 'No active coupon available';
-        const couponDetail = activeCoupons[0] ? (activeCoupons[0].details || activeCoupons[0].description || 'Offer available') : '';
+
+        if (!activeDeals.length && !activeCoupons.length) {
+          return '';
+        }
+
+        const deal = activeDeals[0] || null;
+        const coupon = activeCoupons[0] || null;
+        const dealTitle = deal ? (deal.title || deal.name || 'Active deal') : 'No active deal';
+        const dealDetail = deal ? (deal.details || deal.description || 'Offer available') : '';
+        const couponTitle = coupon ? (coupon.title || coupon.name || 'Active coupon') : 'No active coupon';
+        const couponDetail = coupon ? (coupon.details || coupon.description || 'Offer available') : '';
         const offerIcon = activeDeals.length || activeCoupons.length ? '🎁' : '📍';
 
         return `
@@ -563,8 +570,8 @@
                 🏷
                 <div class="merchant-offer-tooltip">
                   <div><strong>${escapeHtml(name)}</strong></div>
-                  <div>Deals: ${escapeHtml(dealTitle)}${dealDetail ? ' — ' + escapeHtml(dealDetail) : ''}</div>
-                  <div>Coupons: ${escapeHtml(couponTitle)}${couponDetail ? ' — ' + escapeHtml(couponDetail) : ''}</div>
+                  ${deal ? `<div>Deals: ${escapeHtml(dealTitle)} — ${escapeHtml(dealDetail)}</div>` : ''}
+                  ${coupon ? `<div>Coupons: ${escapeHtml(couponTitle)} — ${escapeHtml(couponDetail)}</div>` : ''}
                   <div>${escapeHtml(addressText)}</div>
                   <div>${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div>
                 </div>
@@ -576,8 +583,8 @@
                 <span style="color:var(--accent);font-weight:800;">${miles} mi</span>
               </div>
               <div class="merchant-offer-meta">Deal / coupon details</div>
-              <div class="merchant-offer-item"><strong>Deal:</strong> ${escapeHtml(dealTitle)}${dealDetail ? ' — ' + escapeHtml(dealDetail) : ''}</div>
-              <div class="merchant-offer-item"><strong>Coupon:</strong> ${escapeHtml(couponTitle)}${couponDetail ? ' — ' + escapeHtml(couponDetail) : ''}</div>
+              ${deal ? `<div class="merchant-offer-item"><strong>Deal:</strong> ${escapeHtml(dealTitle)} — ${escapeHtml(dealDetail)}</div>` : ''}
+              ${coupon ? `<div class="merchant-offer-item"><strong>Coupon:</strong> ${escapeHtml(couponTitle)} — ${escapeHtml(couponDetail)}</div>` : ''}
             </div>
           </li>
         `;
