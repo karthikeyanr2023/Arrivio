@@ -154,6 +154,22 @@
 
     .icon-button svg { width: 20px; height: 20px; fill: var(--primary); }
 
+    .pattern-button {
+      border: 1px solid rgba(31, 79, 123, 0.12);
+      background: linear-gradient(135deg, #eaf3ff, #f5faff);
+      color: var(--primary);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.2s ease;
+    }
+
+    .pattern-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 20px rgba(31, 79, 123, 0.08);
+    }
+
     .details {
       padding: 20px 24px 24px;
       border-top: 1px solid rgba(31, 79, 123, 0.08);
@@ -282,7 +298,35 @@
       listElement.querySelectorAll('.toggle-details').forEach(button => {
         button.addEventListener('click', event => {
           const card = event.currentTarget.closest('.item-card');
-          card.querySelector('.details').classList.toggle('show');
+          const details = card.querySelector('.details');
+          if (details) details.classList.toggle('show');
+        });
+      });
+
+      listElement.querySelectorAll('.pattern-button').forEach(button => {
+        button.addEventListener('click', async (event) => {
+          const userId = event.currentTarget.dataset.userId || 'unknown';
+          const userName = event.currentTarget.dataset.userName || userId;
+          event.currentTarget.disabled = true;
+          event.currentTarget.textContent = 'Generating...';
+          try {
+            const response = await fetch('https://rprhgi512e.execute-api.us-east-1.amazonaws.com/user-pattern', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId, userName })
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error(payload?.message || 'Unable to generate user pattern');
+            }
+            alert(`Pattern generation started for ${userName}.`);
+          } catch (error) {
+            console.error('Pattern generation failed:', error);
+            alert(error.message || 'Unable to generate user pattern right now.');
+          } finally {
+            event.currentTarget.disabled = false;
+            event.currentTarget.textContent = 'Show pattern';
+          }
         });
       });
     }
@@ -315,6 +359,7 @@
             <span>${escapeHtml(subtitle)}</span>
           </div>
           <div class="item-actions">
+            ${type === 'users' ? `<button class="pattern-button" type="button" data-user-id="${escapeHtml(item.userId || item.email || item.fullName || index)}" data-user-name="${escapeHtml(item.fullName || item.email || 'Unknown user')}">Show pattern</button>` : ''}
             <button class="icon-button toggle-details" type="button" aria-label="Toggle details">
               <svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
