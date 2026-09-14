@@ -724,7 +724,11 @@
 
       currentDestinationLabel = v;
       currentDestinationName = v;
-      logDebugEvent('destination_visit', { destination: v, userId: username || 'anonymous' });
+      logDebugEvent('destination_visit', {
+        destination: v,
+        destinationName: v,
+        userId: username || 'anonymous'
+      });
 
       destMsg.style.display = '';
       destMsg.textContent = 'Resolving destination...';
@@ -749,6 +753,16 @@
 
         if(lat && lng){
           const destination = { lat: Number(lat), lng: Number(lng) };
+          const destinationMeta = {
+            destination: v,
+            destinationName: resolvedName,
+            resolvedLat: Number(lat),
+            resolvedLng: Number(lng),
+            source: j.source || 'unknown'
+          };
+
+          logDebugEvent('destination_resolved', destinationMeta);
+
           try { localStorage.setItem('destination_geocode', JSON.stringify(destination)); } catch (e) {}
           try { localStorage.setItem('destination_geocode_details', JSON.stringify({ ...j, destination_name: resolvedName })); } catch (e) {}
           try { localStorage.setItem('destination_name', String(resolvedName)); } catch (e) {}
