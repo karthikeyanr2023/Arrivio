@@ -92,6 +92,7 @@
                 <button id="setDestinationBtn" style="padding:10px 14px;border-radius:8px;background:var(--accent);color:#fff;border:0;cursor:pointer">Set</button>
               </div>
               <div id="destinationMsg" class="small" style="margin-top:8px;display:none;color:var(--muted)"></div>
+              <div id="destName" class="small" style="margin-top:6px;display:none;color:var(--muted)"></div>
               <div id="destCoords" class="small" style="margin-top:6px;display:none;color:var(--muted)"></div>
 
               <div id="distanceStatus" style="display:none;margin-top:12px;color:var(--accent);font-weight:700;">
@@ -174,6 +175,7 @@
     const destInput = document.getElementById('destinationInput');
     const setDestBtn = document.getElementById('setDestinationBtn');
     const destMsg = document.getElementById('destinationMsg');
+    const destName = document.getElementById('destName');
     const destCoords = document.getElementById('destCoords');
 
     navWelcome.addEventListener('click', () => showSection('welcome'));
@@ -259,6 +261,7 @@
     let merchantDistanceData = [];
     let selectedProximityMiles = 5;
     let currentDestinationLabel = '';
+    let currentDestinationName = '';
     const DEBUG_LOG_LIMIT = 200;
     const DEBUG_LOG_KEY = 'arrivio_debug_log';
     const debugLogBuffer = [];
@@ -720,10 +723,12 @@
       if(!v){ destMsg.textContent = 'Please enter a destination.'; destMsg.style.display = ''; return; }
 
       currentDestinationLabel = v;
+      currentDestinationName = v;
       logDebugEvent('destination_visit', { destination: v, userId: username || 'anonymous' });
 
       destMsg.style.display = '';
       destMsg.textContent = 'Resolving destination...';
+      destName.style.display = 'none';
       destCoords.style.display = 'none';
 
       try {
@@ -739,13 +744,18 @@
 
         const lat = j.lat ?? j.result?.lat ?? j.body?.lat ?? (j.geometry && j.geometry.location && j.geometry.location.lat);
         const lng = j.lng ?? j.result?.lng ?? j.body?.lng ?? (j.geometry && j.geometry.location && j.geometry.location.lng);
+        const resolvedName = j.place_name || j.formatted_address || j.name || v;
+        currentDestinationName = resolvedName;
 
         if(lat && lng){
           const destination = { lat: Number(lat), lng: Number(lng) };
           try { localStorage.setItem('destination_geocode', JSON.stringify(destination)); } catch (e) {}
-          try { localStorage.setItem('destination_geocode_details', JSON.stringify(j)); } catch (e) {}
+          try { localStorage.setItem('destination_geocode_details', JSON.stringify({ ...j, destination_name: resolvedName })); } catch (e) {}
+          try { localStorage.setItem('destination_name', String(resolvedName)); } catch (e) {}
 
           destMsg.textContent = 'Destination resolved.';
+          destName.textContent = 'Place: ' + resolvedName;
+          destName.style.display = '';
           destCoords.style.display = '';
           const src = j.source || j.result?.source || j.body?.source || '';
           destCoords.textContent = 'Lat: ' + Number(lat).toFixed(6) + ', Lng: ' + Number(lng).toFixed(6) + (src ? ('  (source: ' + src + ')') : '');
