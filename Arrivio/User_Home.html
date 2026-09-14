@@ -391,12 +391,19 @@
         return { ok: true, uploaded: 0 };
       }
 
+      const payload = {
+        userId,
+        generatedAt: new Date().toISOString(),
+        eventCount: actions.length,
+        events: actions
+      };
+
       const response = await fetch(USER_ACTIVITY_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          events: actions
+          Payload: payload
         })
       });
 
@@ -407,7 +414,7 @@
       }
 
       try { localStorage.removeItem(DEBUG_LOG_KEY); } catch (e) {}
-      return { ok: true, uploaded: actions.length, response: responseBody };
+      return { ok: true, uploaded: actions.length, response: responseBody, payload };
     }
 
     function makeMerchantDebugContext(row) {
