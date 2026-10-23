@@ -97,7 +97,7 @@
 
               <div id="distanceStatus" style="display:none;margin-top:12px;color:var(--accent);font-weight:700;">
                 <span class="spinner"></span>
-                Calculating nearby merchant distances...
+                Finding nearby merchants and personalizing your results...
               </div>
 
               <div id="proximityBlock" style="margin-top:14px;display:none;">
@@ -617,8 +617,7 @@
 
       const limit = selectedProximityMiles || 100;
       const filteredItems = merchantDistanceData
-        .filter(item => parseDistanceMiles(item) <= limit)
-        .sort((a, b) => parseDistanceMiles(a) - parseDistanceMiles(b));
+        .filter(item => parseDistanceMiles(item) <= limit);
 
       if (!filteredItems.length) {
         list.innerHTML = '<li>No nearby merchant geolocations were found within ' + limit + ' miles.</li>';
@@ -627,6 +626,10 @@
       }
 
       const enrichedItems = await Promise.all(filteredItems.map(async (item) => {
+        if (Array.isArray(item.deals) && Array.isArray(item.coupons)) {
+          return item;
+        }
+
         const merchantId = getMerchantId(item);
         const offers = merchantId ? await fetchMerchantOffers(merchantId) : { deals: [], coupons: [] };
         return { ...item, deals: offers.deals || [], coupons: offers.coupons || [] };
@@ -782,37 +785,40 @@
           destCoords.textContent = 'Lat: ' + Number(lat).toFixed(6) + ', Lng: ' + Number(lng).toFixed(6) + (src ? ('  (source: ' + src + ')') : '');
 
           showDistanceStatus(true);
-          setTimeout(async () => {
-            try {
-              const distanceResp = await fetch(DISTANCE_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lat: destination.lat, lng: destination.lng })
-              });
+          try {
+            const distanceResp = await fetch(DISTANCE_API_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lat: destination.lat,
+                lng: destination.lng,
+                userId: username,
+                radiusMiles: 10
+              })
+            });
 
-              const distanceData = await distanceResp.json().catch(() => ({}));
-              const parsedDistanceData = normalizeApiResponse(distanceData);
+            const distanceData = await distanceResp.json().catch(() => ({}));
+            const parsedDistanceData = normalizeApiResponse(distanceData);
 
-              if (!distanceResp.ok) {
-                throw new Error(parsedDistanceData.message || 'Distance calculation failed');
-              }
-
-              const nearbyMerchants = Array.isArray(parsedDistanceData.data)
-                ? parsedDistanceData.data
-                : Array.isArray(parsedDistanceData) ? parsedDistanceData : [];
-
-              renderMerchantDistances(nearbyMerchants);
-            } catch (err) {
-              const list = document.getElementById('merchantDistanceList');
-              const results = document.getElementById('merchantDistanceResults');
-              if (list && results) {
-                list.innerHTML = '<li>Error: ' + escapeHtml(err.message || 'Unable to calculate merchant distances.') + '</li>';
-                results.style.display = 'block';
-              }
-            } finally {
-              showDistanceStatus(false);
+            if (!distanceResp.ok) {
+              throw new Error(parsedDistanceData.message || 'Distance calculation failed');
             }
-          }, 2000);
+
+            const nearbyMerchants = Array.isArray(parsedDistanceData.data)
+              ? parsedDistanceData.data
+              : Array.isArray(parsedDistanceData) ? parsedDistanceData : [];
+
+            await renderMerchantDistances(nearbyMerchants);
+          } catch (err) {
+            const list = document.getElementById('merchantDistanceList');
+            const results = document.getElementById('merchantDistanceResults');
+            if (list && results) {
+              list.innerHTML = '<li>Error: ' + escapeHtml(err.message || 'Unable to calculate merchant distances.') + '</li>';
+              results.style.display = 'block';
+            }
+          } finally {
+            showDistanceStatus(false);
+          }
         } else {
           destMsg.textContent = 'Geocode succeeded but no coordinates returned.';
         }
