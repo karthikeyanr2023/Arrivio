@@ -898,6 +898,13 @@
             }
 
             showDistanceStatus(false);
+
+            if (!Array.isArray(nearbyMerchants) || nearbyMerchants.length === 0) {
+              logDebugEvent('occasion_skipped_empty_results', { merchantCount: 0 });
+              await renderMerchantDistances(nearbyMerchants);
+              return;
+            }
+
             const occasion = await askOccasion();
             logDebugEvent('occasion_selected', { occasion: occasion || 'Skipped' });
 
