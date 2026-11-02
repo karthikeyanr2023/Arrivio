@@ -888,7 +888,10 @@
 
             const nearbyMerchants = Array.isArray(parsedDistanceData.data)
               ? parsedDistanceData.data
-              : Array.isArray(parsedDistanceData) ? parsedDistanceData : [];
+              : Array.isArray(parsedDistanceData) ? parsedDistanceData
+              : Array.isArray(parsedDistanceData?.results) ? parsedDistanceData.results
+              : Array.isArray(parsedDistanceData?.items) ? parsedDistanceData.items
+              : [];
 
             const rankingDebug = distanceData.rankingDebug || parsedDistanceData.rankingDebug || null;
             if (rankingDebug) {
@@ -900,7 +903,7 @@
             showDistanceStatus(false);
 
             if (!Array.isArray(nearbyMerchants) || nearbyMerchants.length === 0) {
-              logDebugEvent('occasion_skipped_empty_results', { merchantCount: 0 });
+              logDebugEvent('occasion_skipped_empty_results', { merchantCount: 0, responseType: Object.prototype.toString.call(parsedDistanceData) });
               await renderMerchantDistances(nearbyMerchants);
               return;
             }
