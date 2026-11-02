@@ -308,6 +308,10 @@
   </div>
 
   <script>
+    try {
+      sessionStorage.removeItem('arrivioOccasionPopupDisabled');
+    } catch (e) {}
+
     const form = document.getElementById('loginForm');
     const messageBox = document.getElementById('message');
 

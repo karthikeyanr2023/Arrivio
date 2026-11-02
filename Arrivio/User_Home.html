@@ -70,6 +70,8 @@
     .occasion-grid button{padding:12px 10px;border-radius:12px;border:1px solid rgba(16,42,68,0.12);background:var(--surface);color:var(--accent);font-weight:700;cursor:pointer}
     .occasion-grid button:hover{background:#eaf3ff;border-color:var(--accent)}
     .occasion-grid button.occasion-skip{grid-column:1 / -1;background:#fff;color:var(--muted)}
+    .occasion-grid button[data-disable-popup="true"]{grid-column:1 / -1;background:#fff4f2;color:#9a1b0b;border-color:rgba(154,27,11,0.2);font-weight:800}
+    .occasion-grid button[data-disable-popup="true"]:hover{background:#ffeae6;border-color:rgba(154,27,11,0.28)}
   </style>
 </head>
 <body>
@@ -175,6 +177,7 @@
         <button type="button" data-occasion="Family Journey">Family Journey</button>
         <button type="button" data-occasion="Festivities">Festivities</button>
         <button type="button" class="occasion-skip" data-occasion="">Skip</button>
+        <button type="button" data-occasion="Don't show this again" data-disable-popup="true">Don't show this again</button>
       </div>
     </div>
   </div>
@@ -206,6 +209,28 @@
 
     navWelcome.addEventListener('click', () => showSection('welcome'));
     navProfile.addEventListener('click', () => showSection('profile'));
+    const OCCASION_POPUP_DISABLED_KEY = 'arrivioOccasionPopupDisabled';
+
+    function isOccasionPopupDisabled() {
+      try {
+        return sessionStorage.getItem(OCCASION_POPUP_DISABLED_KEY) === '1';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function disableOccasionPopupForSession() {
+      try {
+        sessionStorage.setItem(OCCASION_POPUP_DISABLED_KEY, '1');
+      } catch (e) {}
+    }
+
+    function clearOccasionPopupSessionPreference() {
+      try {
+        sessionStorage.removeItem(OCCASION_POPUP_DISABLED_KEY);
+      } catch (e) {}
+    }
+
     navLogout.addEventListener('click', async () => {
       try {
         await uploadUserActivityOnLogout();
@@ -217,6 +242,7 @@
         localStorage.removeItem('destination_geocode_details');
         localStorage.removeItem('arrivioProximityMiles');
       } catch (e) {}
+      clearOccasionPopupSessionPreference();
       location.href = new URL('./Home_Login.html', window.location.href).toString();
     });
 
@@ -280,6 +306,10 @@
     }
 
     function askOccasion() {
+      if (isOccasionPopupDisabled()) {
+        return Promise.resolve('');
+      }
+
       return new Promise(resolve => {
         const backdrop = document.getElementById('occasionBackdrop');
         const finish = value => {
@@ -290,7 +320,13 @@
         };
         const onClick = e => {
           const btn = e.target.closest('button[data-occasion]');
-          if (btn) finish(btn.getAttribute('data-occasion'));
+          if (!btn) return;
+
+          const occasion = btn.getAttribute('data-occasion');
+          if (btn.dataset.disablePopup === 'true') {
+            disableOccasionPopupForSession();
+          }
+          finish(occasion);
         };
         const onKey = e => { if (e.key === 'Escape') finish(''); };
         backdrop.addEventListener('click', onClick);
