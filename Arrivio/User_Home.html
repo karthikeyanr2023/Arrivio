@@ -70,7 +70,7 @@
     .occasion-grid button{padding:12px 10px;border-radius:12px;border:1px solid rgba(16,42,68,0.12);background:var(--surface);color:var(--accent);font-weight:700;cursor:pointer}
     .occasion-grid button:hover{background:#eaf3ff;border-color:var(--accent)}
     .occasion-grid button.occasion-skip{grid-column:1 / -1;background:#fff;color:var(--muted)}
-    .occasion-grid button[data-disable-popup="true"]{grid-column:1 / -1;background:#fff4f2;color:#9a1b0b;border-color:rgba(154,27,11,0.2);font-weight:800}
+    .occasion-grid button[data-disable-popup="true"]{grid-column:1 / -1;background:#fff4f2;color:#9a1b0b;border-color:rgba(154,27,11,0.2);font-weight:800;box-shadow:inset 0 0 0 1px rgba(154,27,11,0.08)}
     .occasion-grid button[data-disable-popup="true"]:hover{background:#ffeae6;border-color:rgba(154,27,11,0.28)}
   </style>
 </head>
@@ -176,8 +176,8 @@
         <button type="button" data-occasion="Chill & Chat">Chill &amp; Chat</button>
         <button type="button" data-occasion="Family Journey">Family Journey</button>
         <button type="button" data-occasion="Festivities">Festivities</button>
-        <button type="button" class="occasion-skip" data-occasion="">Skip</button>
         <button type="button" data-occasion="Don't show this again" data-disable-popup="true">Don't show this again</button>
+        <button type="button" class="occasion-skip" data-occasion="">Skip</button>
       </div>
     </div>
   </div>
