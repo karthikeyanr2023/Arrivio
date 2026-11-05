@@ -867,6 +867,9 @@
           const src = j.source || j.result?.source || j.body?.source || '';
           destCoords.textContent = 'Lat: ' + Number(lat).toFixed(6) + ', Lng: ' + Number(lng).toFixed(6) + (src ? ('  (source: ' + src + ')') : '');
 
+          const occasion = await askOccasion();
+          logDebugEvent('occasion_selected', { occasion: occasion || 'Skipped' });
+
           showDistanceStatus(true);
           try {
             const distanceResp = await fetch(DISTANCE_API_URL, {
@@ -876,7 +879,8 @@
                 lat: destination.lat,
                 lng: destination.lng,
                 userId: username,
-                radiusMiles: 10
+                radiusMiles: 10,
+                occasion: occasion || ''
               })
             });
 
@@ -904,13 +908,10 @@
             showDistanceStatus(false);
 
             if (!Array.isArray(nearbyMerchants) || nearbyMerchants.length === 0) {
-              logDebugEvent('occasion_skipped_empty_results', { merchantCount: 0, responseType: Object.prototype.toString.call(parsedDistanceData) });
+              logDebugEvent('occasion_skipped_empty_results', { merchantCount: 0, responseType: Object.prototype.toString.call(parsedDistanceData), occasion: occasion || '' });
               await renderMerchantDistances(nearbyMerchants);
               return;
             }
-
-            const occasion = await askOccasion();
-            logDebugEvent('occasion_selected', { occasion: occasion || 'Skipped' });
 
             await renderMerchantDistances(nearbyMerchants);
           } catch (err) {
