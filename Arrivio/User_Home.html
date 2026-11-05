@@ -186,6 +186,9 @@
   <script>
     const params = new URLSearchParams(location.search);
     const username = params.get('username') || '';
+    const userType = (params.get('type') || 'user').toLowerCase();
+    const isGuestUser = username.toLowerCase() === 'guestuser' || userType === 'guest';
+    const activeUserId = isGuestUser ? 'Guestuser' : (username || 'anonymous');
 
     const USER_LIST_URL = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com/DEV/users';
     const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
@@ -271,6 +274,20 @@
 
     async function renderProfile(){
       profileContent.innerHTML = '<p class="small">Loading profile...</p>';
+
+      if (isGuestUser) {
+        profileContent.innerHTML = `
+          <div class="profile">
+            <div class="row"><div class="label">User</div><div class="value">Guest</div></div>
+            <div class="row"><div class="label">Search</div><div class="value">Guest destination search is enabled.</div></div>
+            <div class="row"><div class="label">User ID</div><div class="value">Guestuser</div></div>
+          </div>
+        `;
+        welcomeTitle.textContent = 'Welcome, Guest User';
+        welcomeSubtitle.textContent = 'Browsing as a guest';
+        return;
+      }
+
       const lookup = (username || '').toLowerCase();
       const list = await loadList(USER_LIST_URL);
       const profile = list.find(p => ((p.email||'').toLowerCase() === lookup) || ((p.fullName||'').toLowerCase() === lookup));
@@ -459,7 +476,7 @@
     }
 
     async function uploadUserActivityOnLogout() {
-      const userId = username || 'anonymous';
+      const userId = activeUserId;
       let actions = [];
       try {
         const raw = localStorage.getItem(DEBUG_LOG_KEY);
@@ -798,10 +815,13 @@
 
     try { destInput.value = ''; } catch (e) {}
 
-    if (!username) {
+    if (!username && !isGuestUser) {
       document.getElementById('errorMessage').textContent = 'No username provided. Redirecting to login...';
       errorSection.style.display = '';
       setTimeout(() => location.href = new URL('./Home_Login.html', window.location.href).toString(), 1800);
+    } else if (isGuestUser) {
+      welcomeTitle.textContent = 'Welcome, Guest User';
+      welcomeSubtitle.textContent = 'Browsing as guest';
     } else {
       welcomeTitle.textContent = 'Welcome, ' + escapeHtml(username);
       welcomeSubtitle.textContent = 'Signed in';
@@ -878,7 +898,7 @@
               body: JSON.stringify({
                 lat: destination.lat,
                 lng: destination.lng,
-                userId: username,
+                userId: activeUserId,
                 radiusMiles: 10,
                 occasion: occasion || ''
               })
