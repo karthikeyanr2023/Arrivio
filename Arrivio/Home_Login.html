@@ -155,21 +155,6 @@
       box-shadow: 0 18px 32px rgba(14, 86, 170, 0.18);
     }
 
-    .guest-search {
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid rgba(27, 63, 114, 0.08);
-    }
-
-    .guest-search-title {
-      margin: 0 0 10px;
-      font-size: 0.8rem;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(27, 63, 114, 0.72);
-    }
-
     .profile-selection {
       display: flex;
       gap: 12px;
@@ -295,16 +280,6 @@
           <div class="login-action">
             <button type="submit">Login</button>
           </div>
-
-          <div class="guest-search">
-            <div class="guest-search-title">Search as guest</div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input id="guestDestinationInput" type="text" placeholder="Enter destination for guest search" style="flex:1;padding:14px 16px;border-radius:14px;border:1px solid rgba(57,110,187,0.18);background:#f8fbff;color:#12233b;" />
-              <button id="guestSetDestinationBtn" type="button" style="padding:14px 18px;border:none;border-radius:14px;background:linear-gradient(135deg, #1b3f72, #4db5ff);color:#fff;font-weight:700;cursor:pointer">Set</button>
-            </div>
-            <div id="guestDestinationStatus" class="small" style="margin-top:8px;display:none;color:#5b6b86"></div>
-          </div>
-
           <div class="profile-selection">
             <a class="profile-option" href="New_User_Reg.html">
               <div class="icon">U</div>
@@ -343,76 +318,10 @@
 
     const form = document.getElementById('loginForm');
     const messageBox = document.getElementById('message');
-    const guestDestinationInput = document.getElementById('guestDestinationInput');
-    const guestDestinationStatus = document.getElementById('guestDestinationStatus');
-    const guestSetDestinationBtn = document.getElementById('guestSetDestinationBtn');
 
     // API endpoints for user and merchant lists
     const USER_LIST_URL = 'https://nc17cjkref.execute-api.us-east-1.amazonaws.com/DEV/users';
     const MERCHANT_LIST_URL = 'https://rx6jfxhhfc.execute-api.us-east-1.amazonaws.com/merchants';
-    const GEOCODE_API_URL = 'https://h7pimzshgb.execute-api.us-east-1.amazonaws.com/geocode';
-
-    async function resolveGuestDestination(destinationText) {
-      const value = (destinationText || '').trim();
-      if (!value) {
-        return { ok: false, message: 'Please enter a destination.' };
-      }
-
-      try {
-        const response = await fetch(GEOCODE_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: value, addressText: value })
-        });
-
-        const json = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          return { ok: false, message: json.error || json.message || 'Unable to resolve destination.' };
-        }
-
-        const lat = json.lat ?? json.result?.lat ?? json.body?.lat ?? (json.geometry && json.geometry.location && json.geometry.location.lat);
-        const lng = json.lng ?? json.result?.lng ?? json.body?.lng ?? (json.geometry && json.geometry.location && json.geometry.location.lng);
-        const resolvedName = json.place_name || json.formatted_address || json.name || value;
-
-        if (lat === undefined || lng === undefined || lat === null || lng === null) {
-          return { ok: false, message: 'Destination geocode did not return coordinates.' };
-        }
-
-        const destination = { lat: Number(lat), lng: Number(lng) };
-        try {
-          localStorage.setItem('destination_geocode', JSON.stringify(destination));
-          localStorage.setItem('destination_geocode_details', JSON.stringify({ ...json, destination_name: resolvedName }));
-          localStorage.setItem('destination_name', String(resolvedName));
-        } catch (e) {}
-
-        return {
-          ok: true,
-          destination,
-          resolvedName,
-          message: 'Destination resolved successfully.'
-        };
-      } catch (error) {
-        return { ok: false, message: error && error.message ? error.message : 'Unable to resolve destination.' };
-      }
-    }
-
-    guestSetDestinationBtn.addEventListener('click', async () => {
-      const destinationText = (guestDestinationInput.value || '').trim();
-      guestDestinationStatus.style.display = 'block';
-      guestDestinationStatus.textContent = 'Resolving destination...';
-      guestDestinationStatus.style.color = '#5b6b86';
-
-      const result = await resolveGuestDestination(destinationText);
-      if (!result.ok) {
-        guestDestinationStatus.textContent = result.message;
-        guestDestinationStatus.style.color = '#9a1b0b';
-        return;
-      }
-
-      guestDestinationStatus.textContent = 'Destination ready. Opening guest search...';
-      guestDestinationStatus.style.color = '#0a3f61';
-      window.location.href = new URL(`./User_Home.html?username=${encodeURIComponent('Guestuser')}&type=guest`, window.location.href).toString();
-    });
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
