@@ -25,9 +25,12 @@
     .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
     .small{font-size:0.95rem;color:var(--muted)}
     .offer-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-    .offer-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font-size:0.8rem;font-weight:700}
+    .offer-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:0;border-radius:999px;font:inherit;font-size:0.8rem;font-weight:700;cursor:pointer}
     .offer-badge.deal{background:#e8f4ff;color:#14569c}
     .offer-badge.coupon{background:#fff2dc;color:#875300}
+    .offer-detail{margin-top:8px;padding:12px;border:1px solid rgba(16,42,68,0.12);border-radius:10px;background:var(--surface);font-size:0.9rem}
+    .offer-detail article + article{border-top:1px solid rgba(16,42,68,0.1);margin-top:10px;padding-top:10px}
+    .offer-detail p{margin:5px 0;white-space:pre-wrap;overflow-wrap:anywhere}
     .occasion-backdrop{position:fixed;inset:0;background:rgba(16,42,68,0.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:1000}
     .occasion-backdrop.open{display:flex}
     .occasion-dialog{background:#fff;border-radius:16px;width:min(440px,100%);max-height:90vh;overflow:auto;padding:22px;box-shadow:0 24px 60px rgba(16,42,68,0.3)}
@@ -343,14 +346,34 @@
       });
     }
 
-    function renderOfferBadges(item) {
+    function renderOfferDetails(offers, kind) {
+      return offers.map(offer => {
+        const title = offer.title || offer.name || (kind === 'deal' ? 'Deal' : 'Coupon');
+        const details = offer.details || offer.description || 'Details not provided';
+        const category = offer.category || offer.type;
+        const from = offer.from || offer.validFrom || offer.startDate || offer.dateFrom;
+        const to = offer.to || offer.validTo || offer.endDate || offer.dateTo || offer.expirationDate || offer.expiry || offer.valid_until;
+        const address = [offer.address, offer.city, offer.state, offer.pin].filter(value => typeof value === 'string' && value.trim()).join(', ');
+        return `<article><strong>${escapeHtml(title)}</strong>
+          <p>${escapeHtml(details)}</p>
+          ${category ? `<p>Type: ${escapeHtml(category)}</p>` : ''}
+          ${from || to ? `<p>Valid: ${escapeHtml(from || 'Not specified')} to ${escapeHtml(to || 'Not specified')}</p>` : ''}
+          ${address ? `<p>Location: ${escapeHtml(address)}</p>` : ''}
+          ${offer.ageLimit !== undefined && offer.ageLimit !== null && String(offer.ageLimit).trim() ? `<p>Age limit: ${escapeHtml(offer.ageLimit)}</p>` : ''}
+        </article>`;
+      }).join('');
+    }
+
+    function renderOfferBadges(item, index) {
       const deals = activeOffers(item.deals);
       const coupons = activeOffers(item.coupons);
       if (!deals.length && !coupons.length) return '';
       return `<div class="offer-badges">
-        ${deals.length ? `<span class="offer-badge deal"><span aria-hidden="true">🏷️</span> ${deals.length} ${deals.length === 1 ? 'Deal' : 'Deals'}</span>` : ''}
-        ${coupons.length ? `<span class="offer-badge coupon"><span aria-hidden="true">🎟️</span> ${coupons.length} ${coupons.length === 1 ? 'Coupon' : 'Coupons'}</span>` : ''}
-      </div>`;
+        ${deals.length ? `<button type="button" class="offer-badge deal" aria-expanded="false" aria-controls="offer-deals-${index}"><span aria-hidden="true">🏷️</span> ${deals.length} ${deals.length === 1 ? 'Deal' : 'Deals'}</button>` : ''}
+        ${coupons.length ? `<button type="button" class="offer-badge coupon" aria-expanded="false" aria-controls="offer-coupons-${index}"><span aria-hidden="true">🎟️</span> ${coupons.length} ${coupons.length === 1 ? 'Coupon' : 'Coupons'}</button>` : ''}
+      </div>
+      ${deals.length ? `<div class="offer-detail" id="offer-deals-${index}" hidden><strong>Deals</strong>${renderOfferDetails(deals, 'deal')}</div>` : ''}
+      ${coupons.length ? `<div class="offer-detail" id="offer-coupons-${index}" hidden><strong>Coupons</strong>${renderOfferDetails(coupons, 'coupon')}</div>` : ''}`;
     }
 
     function renderMerchantDistances(items) {
@@ -371,16 +394,25 @@
         return;
       }
 
-      list.innerHTML = filteredItems.map(item => {
+      list.innerHTML = filteredItems.map((item, index) => {
         const name = getMerchantDisplayName(item);
         const miles = parseDistanceMiles(item).toFixed(2);
         const phone = getMerchantPhone(item);
         const addressText = getMerchantAddressText(item);
-        return `<li><div style="font-weight:700;color:#102a44;">${escapeHtml(name)}</div><div style="color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div><div style="color:var(--muted);font-size:0.85rem;">${escapeHtml(addressText)}</div><div style="margin-top:4px;color:var(--accent);font-weight:700;">${miles} miles</div>${renderOfferBadges(item)}</li>`;
+        return `<li><div style="font-weight:700;color:#102a44;">${escapeHtml(name)}</div><div style="color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div><div style="color:var(--muted);font-size:0.85rem;">${escapeHtml(addressText)}</div><div style="margin-top:4px;color:var(--accent);font-weight:700;">${miles} miles</div>${renderOfferBadges(item, index)}</li>`;
       }).join('');
 
       results.style.display = 'block';
     }
+
+    document.getElementById('merchantDistanceList').addEventListener('click', event => {
+      const button = event.target.closest('button.offer-badge');
+      if (!button) return;
+      const details = document.getElementById(button.getAttribute('aria-controls'));
+      if (!details) return;
+      details.hidden = !details.hidden;
+      button.setAttribute('aria-expanded', String(!details.hidden));
+    });
 
     document.querySelectorAll('.proximity-option').forEach(button => {
       button.addEventListener('click', () => {
