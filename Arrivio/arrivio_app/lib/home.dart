@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   late final api = widget.api ?? ArrivioApi();
   final destination = TextEditingController();
   bool loading = false;
+  String loadingMessage = 'Loading...';
   String? message;
   String? coordinates;
   List<Map<String, dynamic>>? nearby;
@@ -82,6 +83,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> loadOffers() async {
     setState(() {
       loading = true;
+      loadingMessage = 'Loading published deals and coupons...';
       message = null;
     });
     final query = Uri(queryParameters: {'merchantId': widget.username}).query;
@@ -119,6 +121,7 @@ class _HomePageState extends State<HomePage> {
     }
     setState(() {
       loading = true;
+      loadingMessage = 'Resolving destination...';
       message = null;
       nearby = null;
       coordinates = null;
@@ -150,6 +153,7 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
       final occasion = await askOccasion();
       if (!mounted) return;
+      setState(() => loadingMessage = 'Retrieving deals and coupons...');
       final dynamic distance = await api.request(
         ArrivioApi.distance,
         body: {
@@ -272,6 +276,80 @@ class _HomePageState extends State<HomePage> {
     return end.isAfter(DateTime.now());
   }
 
+  List<Map<String, dynamic>> activeOffers(dynamic value) {
+    if (value is! List) return [];
+    return value
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .where(isActive)
+        .toList();
+  }
+
+  void showOfferDetails(
+    String merchantName,
+    String kind,
+    List<Map<String, dynamic>> offers,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: FractionallySizedBox(
+          heightFactor: 0.7,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            children: [
+              Text(
+                '$kind - $merchantName',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              for (final offer in offers) ...[
+                const Divider(),
+                Text(
+                  '${offer['title'] ?? offer['name'] ?? kind}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${offer['details'] ?? offer['description'] ?? 'Details not provided'}',
+                ),
+                if (offer['category'] != null || offer['type'] != null)
+                  Text('Type: ${offer['category'] ?? offer['type']}'),
+                if (offer['from'] != null ||
+                    offer['validFrom'] != null ||
+                    offer['startDate'] != null ||
+                    offer['dateFrom'] != null ||
+                    offer['to'] != null ||
+                    offer['validTo'] != null ||
+                    offer['endDate'] != null ||
+                    offer['dateTo'] != null ||
+                    offer['expirationDate'] != null ||
+                    offer['expiry'] != null ||
+                    offer['valid_until'] != null)
+                  Text(
+                    'Valid: ${offer['from'] ?? offer['validFrom'] ?? offer['startDate'] ?? offer['dateFrom'] ?? 'Not specified'} to ${offer['to'] ?? offer['validTo'] ?? offer['endDate'] ?? offer['dateTo'] ?? offer['expirationDate'] ?? offer['expiry'] ?? offer['valid_until'] ?? 'Not specified'}',
+                  ),
+                if ([
+                  offer['address'],
+                  offer['city'],
+                  offer['state'],
+                  offer['pin'],
+                ].any((value) => value is String && value.trim().isNotEmpty))
+                  Text(
+                    'Location: ${[offer['address'], offer['city'], offer['state'], offer['pin']].whereType<String>().where((value) => value.trim().isNotEmpty).join(', ')}',
+                  ),
+                if (offer['ageLimit'] != null &&
+                    '${offer['ageLimit']}'.trim().isNotEmpty)
+                  Text('Age limit: ${offer['ageLimit']}'),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -284,7 +362,16 @@ class _HomePageState extends State<HomePage> {
       ],
     ),
     body: loading
-        ? const Center(child: CircularProgressIndicator())
+        ? Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(loadingMessage, textAlign: TextAlign.center),
+              ],
+            ),
+          )
         : ListView(
             padding: const EdgeInsets.all(20),
             children: [
@@ -371,9 +458,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<Widget> userContent() {
-    final results = nearby
+    final withinDistance = nearby
         ?.where((item) => distanceInMiles(item) <= miles)
         .toList();
+    final results = withinDistance
+        ?.where(
+          (item) =>
+              activeOffers(item['deals']).isNotEmpty ||
+              activeOffers(item['coupons']).isNotEmpty,
+        )
+        .toList();
+    final incompleteOffers =
+        withinDistance?.any(
+          (item) => item['deals'] is! List || item['coupons'] is! List,
+        ) ??
+        false;
     return [
       const Text('Enter a destination to find nearby merchants.'),
       const SizedBox(height: 12),
@@ -406,9 +505,13 @@ class _HomePageState extends State<HomePage> {
             'The distance service may limit the search range, so results may be incomplete.',
           ),
         Text('Nearby merchants', style: Theme.of(context).textTheme.titleLarge),
-        if (results.isEmpty)
+        if (results.isEmpty && !incompleteOffers)
           Text(
-            'No nearby merchant geolocations were found within $miles miles.',
+            'No merchants with active deals or coupons were found within $miles miles.',
+          ),
+        if (incompleteOffers)
+          const Text(
+            'Offer information is unavailable for some nearby merchants, so results may be incomplete.',
           ),
         for (final item in results) merchantCard(item),
       ],
@@ -448,11 +551,44 @@ class _HomePageState extends State<HomePage> {
         .map((key) => address[key])
         .where((v) => v != null && '$v'.isNotEmpty)
         .join(', ');
+    final deals = activeOffers(item['deals']);
+    final coupons = activeOffers(item['coupons']);
     return Card(
-      child: ListTile(
-        title: Text('$name'),
-        subtitle: Text(
-          'Phone: $phone\n${location.isEmpty ? 'Address unavailable' : location}\n${distanceInMiles(item).toStringAsFixed(2)} miles',
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('$name', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Phone: $phone\n${location.isEmpty ? 'Address unavailable' : location}\n${distanceInMiles(item).toStringAsFixed(2)} miles',
+            ),
+            Wrap(
+              spacing: 8,
+              children: [
+                if (deals.isNotEmpty)
+                  ActionChip(
+                    avatar: const Icon(Icons.local_offer_outlined, size: 18),
+                    label: Text(
+                      '${deals.length} ${deals.length == 1 ? 'Deal' : 'Deals'}',
+                    ),
+                    onPressed: () => showOfferDetails('$name', 'Deals', deals),
+                  ),
+                if (coupons.isNotEmpty)
+                  ActionChip(
+                    avatar: const Icon(
+                      Icons.confirmation_number_outlined,
+                      size: 18,
+                    ),
+                    label: Text(
+                      '${coupons.length} ${coupons.length == 1 ? 'Coupon' : 'Coupons'}',
+                    ),
+                    onPressed: () =>
+                        showOfferDetails('$name', 'Coupons', coupons),
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );

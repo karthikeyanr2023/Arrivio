@@ -27,6 +27,9 @@ available for login, registration, merchant search, and merchant offers.
 After a destination is resolved, the app asks for an occasion (or allows
 skipping it) and sends it to the distance service. The app warns when the
 service does not confirm that occasion ranking was applied.
+The nearby list shows only merchants with active deals or coupons returned by
+the distance service. Tap a deal or coupon badge to see its details. If offer
+data is missing, the app warns that the results may be incomplete.
 
 To share a destination from Google Maps, use Share and select Arrivio. If
 needed, log in as a user; the shared link is placed in the destination field.
