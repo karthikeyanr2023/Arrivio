@@ -24,6 +24,10 @@
     .value{flex:1}
     .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
     .small{font-size:0.95rem;color:var(--muted)}
+    .offer-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .offer-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;font-size:0.8rem;font-weight:700}
+    .offer-badge.deal{background:#e8f4ff;color:#14569c}
+    .offer-badge.coupon{background:#fff2dc;color:#875300}
     .occasion-backdrop{position:fixed;inset:0;background:rgba(16,42,68,0.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:1000}
     .occasion-backdrop.open{display:flex}
     .occasion-dialog{background:#fff;border-radius:16px;width:min(440px,100%);max-height:90vh;overflow:auto;padding:22px;box-shadow:0 24px 60px rgba(16,42,68,0.3)}
@@ -328,6 +332,27 @@
       return Number.MAX_SAFE_INTEGER;
     }
 
+    function activeOffers(offers) {
+      if (!Array.isArray(offers)) return [];
+      return offers.filter(offer => {
+        if (!offer || typeof offer !== 'object') return false;
+        const end = offer.to || offer.validTo || offer.endDate || offer.dateTo || offer.expirationDate || offer.expiry || offer.valid_until;
+        if (!end) return true;
+        const date = new Date(String(end).includes('T') ? String(end) : String(end) + 'T23:59:59');
+        return Number.isNaN(date.getTime()) || date >= new Date();
+      });
+    }
+
+    function renderOfferBadges(item) {
+      const deals = activeOffers(item.deals);
+      const coupons = activeOffers(item.coupons);
+      if (!deals.length && !coupons.length) return '';
+      return `<div class="offer-badges">
+        ${deals.length ? `<span class="offer-badge deal"><span aria-hidden="true">🏷️</span> ${deals.length} ${deals.length === 1 ? 'Deal' : 'Deals'}</span>` : ''}
+        ${coupons.length ? `<span class="offer-badge coupon"><span aria-hidden="true">🎟️</span> ${coupons.length} ${coupons.length === 1 ? 'Coupon' : 'Coupons'}</span>` : ''}
+      </div>`;
+    }
+
     function renderMerchantDistances(items) {
       const list = document.getElementById('merchantDistanceList');
       const results = document.getElementById('merchantDistanceResults');
@@ -351,7 +376,7 @@
         const miles = parseDistanceMiles(item).toFixed(2);
         const phone = getMerchantPhone(item);
         const addressText = getMerchantAddressText(item);
-        return `<li><div style="font-weight:700;color:#102a44;">${escapeHtml(name)}</div><div style="color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div><div style="color:var(--muted);font-size:0.85rem;">${escapeHtml(addressText)}</div><div style="margin-top:4px;color:var(--accent);font-weight:700;">${miles} miles</div></li>`;
+        return `<li><div style="font-weight:700;color:#102a44;">${escapeHtml(name)}</div><div style="color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div><div style="color:var(--muted);font-size:0.85rem;">${escapeHtml(addressText)}</div><div style="margin-top:4px;color:var(--accent);font-weight:700;">${miles} miles</div>${renderOfferBadges(item)}</li>`;
       }).join('');
 
       results.style.display = 'block';
