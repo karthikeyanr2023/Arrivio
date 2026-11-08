@@ -24,6 +24,12 @@
     .value{flex:1}
     .error{padding:12px;border-radius:10px;background:#fdecea;color:#9a1b0b}
     .small{font-size:0.95rem;color:var(--muted)}
+    .occasion-backdrop{position:fixed;inset:0;background:rgba(16,42,68,0.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:1000}
+    .occasion-backdrop.open{display:flex}
+    .occasion-dialog{background:#fff;border-radius:16px;width:min(440px,100%);max-height:90vh;overflow:auto;padding:22px;box-shadow:0 24px 60px rgba(16,42,68,0.3)}
+    .occasion-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .occasion-grid button{padding:12px 10px;border-radius:12px;border:1px solid rgba(16,42,68,0.12);background:var(--surface);color:var(--accent);font-weight:700;cursor:pointer}
+    .occasion-grid .wide{grid-column:1 / -1}
     .spinner {
       display: inline-block;
       width: 16px;
@@ -109,6 +115,25 @@
     </div>
   </div>
 
+  <div id="occasionBackdrop" class="occasion-backdrop" role="dialog" aria-modal="true" aria-labelledby="occasionTitle">
+    <div class="occasion-dialog">
+      <h3 id="occasionTitle">What's the occasion?</h3>
+      <p class="small">Pick the one that fits this trip, or skip to see your results.</p>
+      <div class="occasion-grid">
+        <button type="button" data-occasion="Family">Family</button>
+        <button type="button" data-occasion="Work">Work</button>
+        <button type="button" data-occasion="Business">Business</button>
+        <button type="button" data-occasion="Friends Hangout">Friends Hangout</button>
+        <button type="button" data-occasion="Party Night">Party Night</button>
+        <button type="button" data-occasion="Chill &amp; Chat">Chill &amp; Chat</button>
+        <button type="button" data-occasion="Family Journey">Family Journey</button>
+        <button type="button" data-occasion="Festivities">Festivities</button>
+        <button type="button" class="wide" data-occasion="" data-disable-popup="true">Don't show this again</button>
+        <button type="button" class="wide" data-occasion="">Skip</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const params = new URLSearchParams(location.search);
     const username = params.get('username') || '';
@@ -136,6 +161,7 @@
     navProfile.addEventListener('click', () => showSection('profile'));
     navLogout.addEventListener('click', () => {
       try { localStorage.removeItem('destination_geocode'); localStorage.removeItem('destination_geocode_details'); localStorage.removeItem('arrivioProximityMiles'); } catch (e) {}
+      try { sessionStorage.removeItem('arrivioOccasionPopupDisabled'); } catch (e) { console.error('Unable to clear occasion preference:', e); }
       location.href = new URL('./Home_Login.html', window.location.href).toString();
     });
 
@@ -201,6 +227,35 @@
     function showDistanceStatus(show) {
       const status = document.getElementById('distanceStatus');
       if (status) status.style.display = show ? 'block' : 'none';
+    }
+
+    function askOccasion() {
+      try {
+        if (sessionStorage.getItem('arrivioOccasionPopupDisabled') === '1') return Promise.resolve('');
+      } catch (e) { console.error('Unable to read occasion preference:', e); }
+      return new Promise(resolve => {
+        const backdrop = document.getElementById('occasionBackdrop');
+        const finish = value => {
+          backdrop.classList.remove('open');
+          backdrop.removeEventListener('click', onClick);
+          document.removeEventListener('keydown', onKey);
+          resolve(value);
+        };
+        const onClick = event => {
+          const button = event.target.closest('button[data-occasion]');
+          if (!button) return;
+          if (button.dataset.disablePopup === 'true') {
+            try { sessionStorage.setItem('arrivioOccasionPopupDisabled', '1'); }
+            catch (e) { console.error('Unable to save occasion preference:', e); }
+          }
+          finish(button.dataset.occasion);
+        };
+        const onKey = event => { if (event.key === 'Escape') finish(''); };
+        backdrop.addEventListener('click', onClick);
+        document.addEventListener('keydown', onKey);
+        backdrop.classList.add('open');
+        backdrop.querySelector('button').focus();
+      });
     }
 
     let merchantDistanceData = [];
@@ -325,6 +380,7 @@
     setDestBtn.addEventListener('click', async () => {
       const v = destInput.value.trim();
       if(!v){ destMsg.textContent = 'Please enter a destination.'; destMsg.style.display = ''; return; }
+      setDestBtn.disabled = true;
 
       destMsg.style.display = '';
       destMsg.textContent = 'Resolving destination...';
@@ -339,12 +395,12 @@
 
         const rawJson = await resp.json().catch(()=>({}));
         const j = normalizeApiResponse(rawJson);
-        if(!resp.ok){ destMsg.textContent = 'Geocode failed: ' + (j.error || j.message || resp.statusText || resp.status); return; }
+        if(!resp.ok){ destMsg.textContent = 'Geocode failed: ' + (j.error || j.message || resp.statusText || resp.status); setDestBtn.disabled = false; return; }
 
         const lat = j.lat ?? j.result?.lat ?? j.body?.lat ?? (j.geometry && j.geometry.location && j.geometry.location.lat);
         const lng = j.lng ?? j.result?.lng ?? j.body?.lng ?? (j.geometry && j.geometry.location && j.geometry.location.lng);
 
-        if(lat && lng){
+        if(lat != null && lng != null){
           const destination = { lat: Number(lat), lng: Number(lng) };
           try { localStorage.setItem('destination_geocode', JSON.stringify(destination)); } catch (e) {}
           try { localStorage.setItem('destination_geocode_details', JSON.stringify(j)); } catch (e) {}
@@ -354,13 +410,14 @@
           const src = j.source || j.result?.source || j.body?.source || '';
           destCoords.textContent = 'Lat: ' + Number(lat).toFixed(6) + ', Lng: ' + Number(lng).toFixed(6) + (src ? ('  (source: ' + src + ')') : '');
 
+          const occasion = await askOccasion();
           showDistanceStatus(true);
           setTimeout(async () => {
             try {
               const distanceResp = await fetch(DISTANCE_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lat: destination.lat, lng: destination.lng })
+                body: JSON.stringify({ lat: destination.lat, lng: destination.lng, userId: username, occasion })
               });
 
               const distanceData = await distanceResp.json().catch(() => ({}));
@@ -375,6 +432,14 @@
                 : Array.isArray(parsedDistanceData) ? parsedDistanceData : [];
 
               renderMerchantDistances(nearbyMerchants);
+              if (occasion && nearbyMerchants.length) {
+                const ranking = parsedDistanceData.rankingDebug?.occasionRanking;
+                if (!ranking || /skipped|failed|unavailable/i.test(ranking.status || '')) {
+                  destMsg.textContent = 'Nearby merchants loaded, but occasion ranking could not be confirmed.';
+                  destMsg.style.display = '';
+                  console.warn('Occasion ranking unavailable or unconfirmed:', ranking);
+                }
+              }
             } catch (err) {
               const list = document.getElementById('merchantDistanceList');
               const results = document.getElementById('merchantDistanceResults');
@@ -384,15 +449,17 @@
               }
             } finally {
               showDistanceStatus(false);
+              setDestBtn.disabled = false;
             }
           }, 2000);
         } else {
           destMsg.textContent = 'Geocode succeeded but no coordinates returned.';
+          setDestBtn.disabled = false;
         }
       } catch (err) {
         destMsg.textContent = 'Geocode error: ' + (err.message || err);
+        setDestBtn.disabled = false;
       }
-      setTimeout(() => destMsg.style.display = 'none', 5000);
     });
   </script>
 </body>

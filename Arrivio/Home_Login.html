@@ -349,6 +349,7 @@
         const lookup = username.toLowerCase();
         const foundUser = users.find(u => (u.email || '').toLowerCase() === lookup || (u.fullName || '').toLowerCase() === lookup);
         if (foundUser) {
+          try { sessionStorage.removeItem('arrivioOccasionPopupDisabled'); } catch (e) { console.error('Unable to reset occasion preference:', e); }
           window.location.href = new URL(`./User_Home.html?username=${encodeURIComponent(username)}&type=user`, window.location.href).toString();
           return;
         }
