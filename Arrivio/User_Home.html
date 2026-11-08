@@ -386,10 +386,22 @@
       if (proximityBlock) proximityBlock.style.display = merchantDistanceData.length ? 'block' : 'none';
 
       const limit = selectedProximityMiles || 100;
-      const filteredItems = merchantDistanceData.filter(item => parseDistanceMiles(item) <= limit);
+      const incompleteOffers = merchantDistanceData.some(item =>
+        parseDistanceMiles(item) <= limit &&
+        (!Array.isArray(item.deals) || !Array.isArray(item.coupons))
+      );
+      const filteredItems = merchantDistanceData.filter(item =>
+        parseDistanceMiles(item) <= limit &&
+        (activeOffers(item.deals).length > 0 || activeOffers(item.coupons).length > 0)
+      );
 
       if (!filteredItems.length) {
-        list.innerHTML = '<li>No nearby merchant geolocations were found within ' + limit + ' miles.</li>';
+        list.textContent = '';
+        const emptyMessage = document.createElement('li');
+        emptyMessage.textContent = incompleteOffers
+          ? 'Offer information is unavailable for some nearby merchants. Please try again later.'
+          : 'No merchants with active deals or coupons were found within ' + limit + ' miles.';
+        list.appendChild(emptyMessage);
         results.style.display = 'block';
         return;
       }
@@ -401,6 +413,11 @@
         const addressText = getMerchantAddressText(item);
         return `<li><div style="font-weight:700;color:#102a44;">${escapeHtml(name)}</div><div style="color:var(--muted);font-size:0.85rem;">${phone ? 'Phone: ' + escapeHtml(phone) : 'Phone: Not available'}</div><div style="color:var(--muted);font-size:0.85rem;">${escapeHtml(addressText)}</div><div style="margin-top:4px;color:var(--accent);font-weight:700;">${miles} miles</div>${renderOfferBadges(item, index)}</li>`;
       }).join('');
+      if (incompleteOffers) {
+        const warning = document.createElement('li');
+        warning.textContent = 'Offer information is unavailable for some nearby merchants, so results may be incomplete.';
+        list.appendChild(warning);
+      }
 
       results.style.display = 'block';
     }
