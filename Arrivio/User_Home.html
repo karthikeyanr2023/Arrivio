@@ -92,10 +92,10 @@
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                   <span class="small" style="font-weight:700;color:var(--muted);">Proximity</span>
                   <div id="proximityOptions" style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button type="button" class="proximity-option active" data-mile="5" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:var(--accent);color:#fff;cursor:pointer;font-weight:700;">5 miles</button>
-                    <button type="button" class="proximity-option" data-mile="10" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">10 miles</button>
-                    <button type="button" class="proximity-option" data-mile="50" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">50 miles</button>
-                    <button type="button" class="proximity-option" data-mile="100" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;">100 miles</button>
+                    <button type="button" class="proximity-option active" data-mile="5" aria-label="5 miles, walking" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:var(--accent);color:#fff;cursor:pointer;font-weight:700;"><span aria-hidden="true">🚶</span> 5 miles</button>
+                    <button type="button" class="proximity-option" data-mile="10" aria-label="10 miles, cycling" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;"><span aria-hidden="true">🚴</span> 10 miles</button>
+                    <button type="button" class="proximity-option" data-mile="15" aria-label="15 miles, train" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;"><span aria-hidden="true">🚆</span> 15 miles</button>
+                    <button type="button" class="proximity-option" data-mile="20" aria-label="20 miles, train" style="padding:7px 12px;border-radius:999px;border:1px solid rgba(16,42,68,0.12);background:#fff;color:var(--accent);cursor:pointer;font-weight:700;"><span aria-hidden="true">🚆</span> 20 miles</button>
                   </div>
                 </div>
               </div>
@@ -271,7 +271,7 @@
     function getStoredProximity() {
       try {
         const stored = Number(localStorage.getItem('arrivioProximityMiles'));
-        return Number.isFinite(stored) && stored > 0 ? stored : 5;
+        return [5, 10, 15, 20].includes(stored) ? stored : 5;
       } catch (e) { return 5; }
     }
 
@@ -385,7 +385,7 @@
       merchantDistanceData = Array.isArray(items) ? items : [];
       if (proximityBlock) proximityBlock.style.display = merchantDistanceData.length ? 'block' : 'none';
 
-      const limit = selectedProximityMiles || 100;
+      const limit = selectedProximityMiles || 5;
       const incompleteOffers = merchantDistanceData.some(item =>
         parseDistanceMiles(item) <= limit &&
         (!Array.isArray(item.deals) || !Array.isArray(item.coupons))
